@@ -1,0 +1,16 @@
+{
+  "name": "Instant Data Lake \u2014 Starter Dashboard",
+  "version": "1",
+  "widgets": [
+    {
+      "type": "chart",
+      "title": "Sales by customer",
+      "dataset": "sales.csv"
+    },
+    {
+      "type": "table",
+      "title": "Customers",
+      "dataset": "customers.csv"
+    }
+  ]
+}
