@@ -1,0 +1,76 @@
+{
+  "name": "instant-data-lake",
+  "version": "1.0.0",
+  "label": "Instant Data Lake (Serverless)",
+  "short_description": "Deploy a free, zero-config data lake in 90 seconds. Instantly run SQL on files you upload to Cloud Object Storage.",
+  "long_description": "This deployable architecture creates a simple, free, serverless data lake. It provisions two free 'Lite' tier services: 1. Cloud Object Storage (COS): A bucket to store your files (CSV, JSON, Parquet). 2. SQL Query: A serverless service to run SQL on those files. The SQL Query service is automatically pre-configured to use your new COS bucket, so you can start querying seconds after uploading.",
+  "tags": [
+    "lite",
+    "free",
+    "data",
+    "sql",
+    "serverless",
+    "analytics",
+    "object-storage"
+  ],
+  "doc_url": "https://github.com/IBM-Cloud/da-instant-data-lake",
+  "architecture": {
+    "diagram_url": "https://raw.githubusercontent.com/IBM-Cloud/da-instant-data-lake/main/images/instant-data-lake-arch.png",
+    "description": "Deploys one 'lite' Cloud Object Storage instance and one 'lite' SQL Query instance, with the SQL Query instance pre-configured to use the COS bucket as its default target."
+  },
+  "features": [
+    {
+      "title": "Deploy in 90 Seconds",
+      "description": "Get a fully functional, serverless data lake running in under 2 minutes."
+    },
+    {
+      "title": "Zero-Input Deployment",
+      "description": "No configuration needed. Click 'Deploy' and all resources are created with unique names."
+    },
+    {
+      "title":"Completely Free",
+      "description": "Uses the 'Lite' plans for both services, so you can deploy and use it for free."
+    },
+    {
+      "title": "Instant SQL Queries",
+      "description": "Drag-and-drop your CSV/JSON files and immediately run SQL on them. No servers or database setup required."
+    }
+  ],
+  "configuration": [
+    {
+      "key": "prefix",
+      "type": "string",
+      "description": "A unique prefix for all resources.",
+      "default_value": "prng(5)",
+      "hidden": true
+    },
+    {
+      "key": "resource_group_name",
+      "type": "string",
+      "description": "The name of the resource group.",
+      "default_value": "Default",
+      "hidden": true
+    },
+    {
+      "key": "cos_instance_name",
+      "type": "string",
+      "description": "Name for the COS instance.",
+      "default_value": "instant-lake-cos",
+      "hidden": true
+    },
+    {
+      "key": "cos_bucket_name",
+      "type": "string",
+      "description": "Name for the COS bucket.",
+      "default_value": "instant-lake-bucket",
+      "hidden": true
+    },
+    {
+      "key": "sql_query_instance_name",
+      "type": "string",
+      "description": "Name for the SQL Query instance.",
+      "default_value": "instant-lake-sql",
+      "hidden": true
+    }
+  ]
+}
