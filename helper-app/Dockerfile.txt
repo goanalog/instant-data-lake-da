@@ -1,0 +1,33 @@
+# Use an official Python runtime as a parent image
+FROM python:3.9-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the requirements file into the container at /app
+COPY requirements.txt .
+
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the application code into the container at /app
+COPY . .
+
+# Make port 8080 available to the world outside this container
+EXPOSE 8080
+
+# Define environment variables (will be overridden by Code Engine)
+ENV FLASK_APP=app.py
+ENV FLASK_RUN_HOST=0.0.0.0
+ENV FLASK_RUN_PORT=8080
+ENV DB2_HOSTNAME=""
+ENV DB2_PORT=""
+ENV DB2_DATABASE=""
+ENV DB2_PROTOCOL="TCPIP"
+ENV DB2_UID="iamuser" # Using IAM for connection
+ENV DB2_PWD_SECRET_CRN="" # CRN for the API key secret
+ENV SECRETS_MANAGER_URL="" # Secrets Manager service URL
+ENV PUBLIC_SAMPLE_DATA_URL_BASE="" # e.g., cos://us-east/your-public-bucket
+
+# Run app.py when the container launches using Gunicorn (more robust than flask run)
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]

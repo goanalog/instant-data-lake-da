@@ -1,68 +1,88 @@
-terraform {
-  required_providers {
-    ibm = {
-      source  = "IBM-Cloud/ibm"
-      version = "~> 1.62.0" # Sticking with the version that initialized successfully
+# ... (Existing resources up to Code Engine App) ...
+
+# Data source for Db2 details (keep this)
+data "ibm_resource_instance" "db2_warehouse_instance_details" {
+  # ... (as before) ...
+}
+locals {
+  # ... (as before) ...
+}
+
+# Code Engine Application
+resource "ibm_code_engine_app" "helper_app" {
+  project_id = ibm_code_engine_project.ce_project.id
+  name       = var.helper_app_name
+  image_reference = "docker.io/library/python:3.9-slim"
+  min_scale = 0
+  max_scale = 1
+
+  # Pass existing and NEW environment variables
+  run_env_variables { name = "DB2_HOSTNAME"; value = local.db2_hostname_cleaned }
+  run_env_variables { name = "DB2_PORT"; value = local.db2_port }
+  run_env_variables { name = "DB2_DATABASE"; value = "BLUDB" }
+  run_env_variables { name = "DB2_PWD_SECRET_CRN"; value = ibm_sm_secret.db2_api_key_secret.crn }
+  run_env_variables { name = "SECRETS_MANAGER_URL"; value = ibm_resource_instance.secrets_manager_instance.service_endpoints["public"] }
+  run_env_variables { name = "PUBLIC_SAMPLE_DATA_URL_BASE"; value = var.public_cos_url_base }
+  # --- NEW ENV VARS ---
+  run_env_variables {
+     name = "USER_COS_BUCKET_NAME"
+     value = ibm_cos_bucket.cos_bucket.bucket_name
+   }
+   run_env_variables {
+      name = "USER_COS_BUCKET_URL"
+      # Construct the COS Bucket Console URL directly here
+      value = "https://cloud.ibm.com/objectstorage/crn:${urlencode(ibm_resource_instance.cos_instance.crn)}/buckets/${ibm_cos_bucket.cos_bucket.bucket_name}/manage?region=${var.region}"
     }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.5.1" # Sticking with the version that initialized successfully
-    }
+    run_env_variables {
+       name = "USER_DB2_CONSOLE_URL"
+       # Construct the Db2 Warehouse Console URL directly here
+       value = "https://cloud.ibm.com/resources/instance/${urlencode(ibm_resource_instance.db2_warehouse_instance.id)}"
+     }
+     run_env_variables {
+        name = "USER_HELPER_APP_CONSOLE_URL"
+        # Construct the Code Engine App Console URL directly here
+        value = "https://cloud.ibm.com/codeengine/project/${ibm_code_engine_project.ce_project.id}/application/${local.helper_app_ce_name}/configuration?region=${var.region}"
+        # Using local.helper_app_ce_name which includes CE's suffix
+      }
+      run_env_variables {
+         name = "USER_SECRETS_MANAGER_URL"
+         # Construct the Secrets Manager Console URL directly here
+         value = "https://cloud.ibm.com/resources/instance/${urlencode(ibm_resource_instance.secrets_manager_instance.id)}"
+       }
+       run_env_variables {
+          name = "DEPLOYED_REGION"
+          value = var.region
+        }
+
+  # Service Bindings (keep this)
+  service_bindings {
+    service_instance_id = ibm_resource_instance.secrets_manager_instance.id
+    role                = "SecretsReader" # Changed to minimal required role
   }
-  required_version = ">= 1.1.0"
-}
 
-provider "ibm" {
-  region = var.region
-}
-
-resource "random_string" "suffix" {
-  length  = 3
-  special = false
-  upper   = false
-  lower   = false
-  numeric = true
-}
-
-data "ibm_resource_group" "group" {
-  name = var.resource_group_name
-}
-
-# --- Core Resources ---
-
-# Cloud Object Storage Instance (Using Lite Plan)
-resource "ibm_resource_instance" "cos_instance" {
-  name              = "${var.cos_instance_name}-${random_string.suffix.result}"
-  service           = "cloud-object-storage"
-  plan              = "lite" # <-- CHANGED to Lite Plan
-  location          = "global" # COS instance location must be global
-  resource_group_id = data.ibm_resource_group.group.id
-  tags              = ["service:cos", "variation:base", "prefix:${var.prefix}"]
-}
-
-# Cloud Object Storage Bucket (Defaults to standard storage class with Lite plan)
-resource "ibm_cos_bucket" "cos_bucket" {
-  bucket_name          = "${var.cos_bucket_name}-${random_string.suffix.result}"
-  resource_instance_id = ibm_resource_instance.cos_instance.id
-  region_location      = var.region
-  # storage_class        = "smart" # <-- REMOVED (Not applicable/needed for Lite plan)
-  force_delete         = true       # Allows deletion of bucket even if not empty during destroy (use with caution)
-}
-
-# SQL Query Instance
-resource "ibm_resource_instance" "sql_query_instance" {
-  name              = "${var.sql_query_instance_name}-${random_string.suffix.result}"
-  service           = "sql-query"
-  plan              = "lite"     # Using the free Lite plan
-  location          = var.region
-  resource_group_id = data.ibm_resource_group.group.id
-  tags              = ["service:sql-query", "variation:base", "prefix:${var.prefix}"]
-
-  parameters = {
-    default_cos_instance_crn = ibm_resource_instance.cos_instance.crn
+  # Build config (keep this)
+  build {
+    # ... (as before) ...
   }
 
   depends_on = [
-    ibm_resource_instance.cos_instance # Ensure COS instance exists before referencing its CRN
+    # ... (keep existing depends_on) ...
   ]
 }
+
+# --- Need a way to get the final Code Engine App Name ---
+# Code Engine often adds a random suffix to the app name.
+# We need to read it back to construct the correct console URL.
+data "ibm_code_engine_app" "helper_app_data" {
+    project_id = ibm_code_engine_project.ce_project.id
+    name       = var.helper_app_name # Use the base name provided
+    # Ensure the app resource exists before reading its data
+    depends_on = [ibm_code_engine_app.helper_app]
+}
+
+locals {
+  # Extract the actual deployed name from the data source
+  helper_app_ce_name = data.ibm_code_engine_app.helper_app_data.name
+}
+
+# ... (rest of main.tf) ...
