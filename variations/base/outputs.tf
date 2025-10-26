@@ -9,8 +9,11 @@ output "STEP_2_RUN_SQL_QUERIES" {
 }
 
 output "STEP_3_GET_SAMPLE_DATA_AND_QUERY" {
-  description = "(Optional) Don't have data? Get sample CSVs from this link. After uploading 'customers.csv', you can run this query: 'SELECT * FROM cos://${ibm_cos_bucket.cos_bucket.endpoint_public}/${var.cos_bucket_name}/customers.csv WHERE Country = ''USA'' LIMIT 10'"
-  value       = "Sample Data: https://github.com/IBM-Cloud/da-instant-data-lake/tree/main/assets/sample-data | Sample Query: SELECT * FROM cos://${ibm_cos_bucket.cos_bucket.endpoint_public}/${var.cos_bucket_name}/customers.csv WHERE Country = 'USA' LIMIT 10"
+  # 1. The description is now a static, helpful string.
+  description = "A sample SQL query to run on your new data lake after uploading the sample 'customers.csv' file."
+  
+  # 2. The dynamic string is moved to the 'value' field, where it is allowed.
+  value = "SELECT * FROM cos://${ibm_cos_bucket.cos_bucket.endpoint_public}/${var.cos_bucket_name}/customers.csv WHERE Country = 'USA' LIMIT 10"
 }
 
 output "bucket_name" {
