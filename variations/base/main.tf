@@ -28,31 +28,35 @@ data "ibm_resource_group" "group" {
   name = var.resource_group_name
 }
 
+# --- Core Resources ---
+
+# Cloud Object Storage Instance
 resource "ibm_resource_instance" "cos_instance" {
   name              = "${var.cos_instance_name}-${random_string.suffix.result}"
   service           = "cloud-object-storage"
   plan              = "standard"
-  location          = var.region # Adjust if COS instance location differs, often 'global'
+  location          = "global" # <-- FIXED: COS instance location must be global
   resource_group_id = data.ibm_resource_group.group.id
-  tags              = ["service:cos", "variation:base", "prefix:${var.prefix}"] # Tags OK here
+  tags              = ["service:cos", "variation:base", "prefix:${var.prefix}"]
 }
 
+# Cloud Object Storage Bucket
 resource "ibm_cos_bucket" "cos_bucket" {
   bucket_name          = "${var.cos_bucket_name}-${random_string.suffix.result}"
   resource_instance_id = ibm_resource_instance.cos_instance.id
-  region_location      = var.region
+  region_location      = var.region # <-- CORRECT: Bucket location is regional
   storage_class        = "smart"
   force_delete         = true
-  # tags                 = ["service:cos-bucket", "variation:base", "prefix:${var.prefix}"] # <-- REMOVED THIS LINE
 }
 
+# SQL Query Instance
 resource "ibm_resource_instance" "sql_query_instance" {
   name              = "${var.sql_query_instance_name}-${random_string.suffix.result}"
   service           = "sql-query"
   plan              = "lite"
-  location          = var.region
+  location          = var.region # <-- CORRECT: SQL Query location is regional
   resource_group_id = data.ibm_resource_group.group.id
-  tags              = ["service:sql-query", "variation:base", "prefix:${var.prefix}"] # Tags OK here
+  tags              = ["service:sql-query", "variation:base", "prefix:${var.prefix}"]
 
   parameters = {
     default_cos_instance_crn = ibm_resource_instance.cos_instance.crn
