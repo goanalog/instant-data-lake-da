@@ -38,6 +38,7 @@ resource "ibm_resource_instance" "sql_instance" {
   tags              = ["instant-data-lake", "base", "lite"]
 
   # --- THE MAGIC LINK ---
+  # Pre-configures SQL Query to use the new COS bucket.
   parameters = {
     target_cos_crn = ibm_resource_bucket.cos_bucket.crn
   }

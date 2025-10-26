@@ -26,6 +26,7 @@ variable "sql_query_instance_name" {
   description = "Name for the SQL Query instance."
 }
 
+# --- NEW VARIABLE ---
 variable "appconnect_instance_name" {
   type        = string
   description = "Name for the App Connect instance."

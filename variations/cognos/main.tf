@@ -49,7 +49,7 @@ resource "ibm_resource_instance" "cognos_instance" {
   name              = "${var.cognos_instance_name}-${var.prefix}-${random_string.suffix.result}"
   service           = "dashboard-embedded"
   plan              = "lite"
-  location          = "us-south" # Lite plan is available in us-south
+  location          = "us-south"
   resource_group_id = data.ibm_resource_group.group.id
   tags              = ["instant-data-lake", "cognos", "lite"]
 }

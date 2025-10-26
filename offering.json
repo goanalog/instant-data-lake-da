@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "label": "Instant Data Lake",
   "short_description": "Deploy a free, one-click data lake, automation pipeline, or BI dashboard in minutes.",
-  "long_description": "This deployable architecture bundles three powerful, zero-input variations into one tile. Choose the solution that's right for you: 1. Base Data Lake: Instantly run SQL on any file you upload. 2. Auto-Ingestion: Connect SaaS apps (like Salesforce) to your data lake. 3. BI Dashboard: Build interactive dashboards from your files.",
+  "long_description": "This deployable architecture bundles three powerful, zero-input variations into one tile. Choose the solution that's right for you: \n1. Base Data Lake: Instantly run SQL on any file you upload. \n2. Auto-Ingestion: Connect SaaS apps (like Salesforce) to your data lake. \n3. BI Dashboard: Build interactive dashboards from your files.",
   "tags": [
     "lite",
     "free",
@@ -17,10 +17,17 @@
     "dashboard",
     "bi"
   ],
-  "doc_url": "https://github.com/IBM-Cloud/da-instant-data-lake",
+  "url": "[https://github.com/IBM-Cloud/da-instant-data-lake](https://github.com/IBM-Cloud/da-instant-data-lake)",
   "architecture": {
-    "diagram_url": "https://raw.githubusercontent.com/IBM-Cloud/da-instant-data-lake/main/images/instant-data-lake-arch.png",
-    "description": "Choose from three variations. All provision a 'lite' Cloud Object Storage bucket and 'lite' SQL Query instance. The variations add 'lite' App Connect for automation or 'lite' Cognos Dashboard Embedded for BI."
+    "diagrams": [
+      {
+        "diagram": {
+          "url": "[https://raw.githubusercontent.com/IBM-Cloud/da-instant-data-lake/main/images/instant-data-lake-arch.png](https://raw.githubusercontent.com/IBM-Cloud/da-instant-data-lake/main/images/instant-data-lake-arch.png)",
+          "caption": "Instant Data Lake Architecture"
+        },
+        "description": "Choose from three variations. All provision a 'lite' Cloud Object Storage bucket and 'lite' SQL Query instance. The variations add 'lite' App Connect for automation or 'lite' Cognos Dashboard Embedded for BI."
+      }
+    ]
   },
   "features": [
     {
@@ -66,7 +73,7 @@
       ]
     },
     {
-      "name": "cognos",
+      "name":"cognos",
       "label": "Data Lake + BI Dashboard (Cognos)",
       "short_description": "For visualization. Adds a drag-and-drop Cognos dashboard builder.",
       "long_description": "This variation provisions the Base Data Lake (COS + SQL Query) and adds a 'lite' Cognos Dashboard Embedded instance. It's the 'last mile' of analytics, allowing you to go from a raw file to a shareable, interactive BI dashboard in minutes using a drag-and-drop editor.",
@@ -132,4 +139,3 @@
     }
   ]
 }
-
