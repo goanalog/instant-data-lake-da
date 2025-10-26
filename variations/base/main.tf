@@ -30,31 +30,31 @@ data "ibm_resource_group" "group" {
 
 # --- Core Resources ---
 
-# Cloud Object Storage Instance
+# Cloud Object Storage Instance (Using Lite Plan)
 resource "ibm_resource_instance" "cos_instance" {
   name              = "${var.cos_instance_name}-${random_string.suffix.result}"
   service           = "cloud-object-storage"
-  plan              = "standard"
-  location          = "global" # <-- FIXED: COS instance location must be global
+  plan              = "lite" # <-- CHANGED to Lite Plan
+  location          = "global" # COS instance location must be global
   resource_group_id = data.ibm_resource_group.group.id
   tags              = ["service:cos", "variation:base", "prefix:${var.prefix}"]
 }
 
-# Cloud Object Storage Bucket
+# Cloud Object Storage Bucket (Defaults to standard storage class with Lite plan)
 resource "ibm_cos_bucket" "cos_bucket" {
   bucket_name          = "${var.cos_bucket_name}-${random_string.suffix.result}"
   resource_instance_id = ibm_resource_instance.cos_instance.id
-  region_location      = var.region # <-- CORRECT: Bucket location is regional
-  storage_class        = "smart"
-  force_delete         = true
+  region_location      = var.region
+  # storage_class        = "smart" # <-- REMOVED (Not applicable/needed for Lite plan)
+  force_delete         = true       # Allows deletion of bucket even if not empty during destroy (use with caution)
 }
 
 # SQL Query Instance
 resource "ibm_resource_instance" "sql_query_instance" {
   name              = "${var.sql_query_instance_name}-${random_string.suffix.result}"
   service           = "sql-query"
-  plan              = "lite"
-  location          = var.region # <-- CORRECT: SQL Query location is regional
+  plan              = "lite"     # Using the free Lite plan
+  location          = var.region
   resource_group_id = data.ibm_resource_group.group.id
   tags              = ["service:sql-query", "variation:base", "prefix:${var.prefix}"]
 
@@ -63,6 +63,6 @@ resource "ibm_resource_instance" "sql_query_instance" {
   }
 
   depends_on = [
-    ibm_resource_instance.cos_instance
+    ibm_resource_instance.cos_instance # Ensure COS instance exists before referencing its CRN
   ]
 }

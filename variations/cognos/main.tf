@@ -28,22 +28,22 @@ data "ibm_resource_group" "group" {
   name = var.resource_group_name
 }
 
-# Cloud Object Storage Instance
+# Cloud Object Storage Instance (Using Lite Plan)
 resource "ibm_resource_instance" "cos_instance" {
   name              = "${var.cos_instance_name}-${random_string.suffix.result}"
   service           = "cloud-object-storage"
-  plan              = "standard"
-  location          = "global" # <-- FIXED: COS instance location must be global
+  plan              = "lite" # <-- CHANGED to Lite Plan
+  location          = "global"
   resource_group_id = data.ibm_resource_group.group.id
   tags              = ["service:cos", "variation:cognos", "prefix:${var.prefix}"]
 }
 
-# Cloud Object Storage Bucket
+# Cloud Object Storage Bucket (Defaults to standard storage class with Lite plan)
 resource "ibm_cos_bucket" "cos_bucket" {
   bucket_name          = "${var.cos_bucket_name}-${random_string.suffix.result}"
   resource_instance_id = ibm_resource_instance.cos_instance.id
-  region_location      = var.region # <-- CORRECT: Bucket location is regional
-  storage_class        = "smart"
+  region_location      = var.region
+  # storage_class        = "smart" # <-- REMOVED (Not applicable/needed for Lite plan)
   force_delete         = true
 }
 
@@ -52,7 +52,7 @@ resource "ibm_resource_instance" "sql_query_instance" {
   name              = "${var.sql_query_instance_name}-${random_string.suffix.result}"
   service           = "sql-query"
   plan              = "lite"
-  location          = var.region # <-- CORRECT: SQL Query location is regional
+  location          = var.region
   resource_group_id = data.ibm_resource_group.group.id
   tags              = ["service:sql-query", "variation:cognos", "prefix:${var.prefix}"]
 
@@ -68,9 +68,9 @@ resource "ibm_resource_instance" "sql_query_instance" {
 # Cognos Analytics Specific Resource
 resource "ibm_resource_instance" "cognos_analytics" {
   name              = "${var.cognos_instance_name}-${random_string.suffix.result}"
-  service           = "cognos-analytics"
-  plan              = var.cognos_plan
-  location          = var.region # <-- CORRECT: Cognos location is regional
+  service           = "cognos-analytics" # Verify exact service name if needed
+  plan              = var.cognos_plan    # Uses default from variables.tf (e.g., "standard")
+  location          = var.region
   resource_group_id = data.ibm_resource_group.group.id
   tags              = ["service:cognos-analytics", "variation:cognos", "prefix:${var.prefix}"]
 }
