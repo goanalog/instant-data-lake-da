@@ -13,7 +13,7 @@ terraform {
 }
 
 provider "ibm" {
-  region = var.region // Set provider region from variable
+  region = var.region
 }
 
 resource "random_string" "suffix" {
@@ -32,27 +32,27 @@ resource "ibm_resource_instance" "cos_instance" {
   name              = "${var.cos_instance_name}-${random_string.suffix.result}"
   service           = "cloud-object-storage"
   plan              = "standard"
-  location          = var.region // Use region variable
+  location          = var.region # Adjust if COS instance location differs, often 'global'
   resource_group_id = data.ibm_resource_group.group.id
-  tags              = ["service:cos", "variation:appconnect", "prefix:${var.prefix}"]
+  tags              = ["service:cos", "variation:appconnect", "prefix:${var.prefix}"] # Tags OK here
 }
 
 resource "ibm_cos_bucket" "cos_bucket" {
   bucket_name          = "${var.cos_bucket_name}-${random_string.suffix.result}"
   resource_instance_id = ibm_resource_instance.cos_instance.id
-  region_location      = var.region // Use region variable
+  region_location      = var.region
   storage_class        = "smart"
   force_delete         = true
-  tags                 = ["service:cos-bucket", "variation:appconnect", "prefix:${var.prefix}"]
+  # tags                 = ["service:cos-bucket", "variation:appconnect", "prefix:${var.prefix}"] # <-- REMOVED THIS LINE
 }
 
 resource "ibm_resource_instance" "sql_query_instance" {
   name              = "${var.sql_query_instance_name}-${random_string.suffix.result}"
   service           = "sql-query"
   plan              = "lite"
-  location          = var.region // Use region variable
+  location          = var.region
   resource_group_id = data.ibm_resource_group.group.id
-  tags              = ["service:sql-query", "variation:appconnect", "prefix:${var.prefix}"]
+  tags              = ["service:sql-query", "variation:appconnect", "prefix:${var.prefix}"] # Tags OK here
 
   parameters = {
     default_cos_instance_crn = ibm_resource_instance.cos_instance.crn
@@ -67,7 +67,7 @@ resource "ibm_resource_instance" "app_connect" {
   name              = "${var.appconnect_instance_name}-${random_string.suffix.result}"
   service           = "appconnect"
   plan              = var.appconnect_plan
-  location          = var.region // Use region variable
+  location          = var.region
   resource_group_id = data.ibm_resource_group.group.id
-  tags              = ["service:appconnect", "variation:appconnect", "prefix:${var.prefix}"]
+  tags              = ["service:appconnect", "variation:appconnect", "prefix:${var.prefix}"] # Tags OK here
 }
