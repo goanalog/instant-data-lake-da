@@ -1,11 +1,18 @@
 {
-  "name": "my-enterprise-da-stack",
-  "label": "My Enterprise DA Stack",
-  "short_description": "A single deployable architecture with multiple variations for base, Cognos, and App Connect.",
-  "long_description": "This deployable architecture provides three options for deployment. You can choose the foundational infrastructure or add pre-configured integrations for Cognos or App Connect.",
+  "name": "enterprise-da-stack",
+  "label": "Enterprise Deployable Architecture",
+  "short_description": "A single solution with three variations: Base, Cognos, and App Connect.",
+  "long_description": "This deployable architecture provides a choice of three pre-configured deployment patterns. You can deploy the foundational infrastructure by itself, or choose a variation that includes Cognos Analytics or App Connect Enterprise.",
   "version": "1.0.0",
   "kind": "terraform",
-  "tags": ["g-cost-synthesis", "iaas", "cognos", "appconnect"],
+  "tags": [
+    "g-cost-synthesis",
+    "iaas",
+    "vpc",
+    "cognos",
+    "appconnect",
+    "ibm-public-compliance"
+  ],
   "provider_name": "IBM",
   "architecture": {
     "diagrams": [
@@ -27,7 +34,7 @@
     },
     {
       "name": "cognos",
-      "label": "Base with Cognos",
+      "label": "Base with Cognos Analytics",
       "short_description": "Deploys the base infrastructure plus a Cognos Analytics service.",
       "working_directory": "variations/cognos",
       "install_type": "fullstack"
