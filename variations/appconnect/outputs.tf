@@ -10,7 +10,7 @@ output "2_Upload_Files_URL" {
 
 output "3_Run_SQL_Queries_URL" {
   description = "Click this link to open the SQL Query UI, which is pre-configured to use your bucket."
-  value       = "[https.cloud.ibm.com/sql/launch?instance_crn=$](https://https.cloud.ibm.com/sql/launch?instance_crn=$){ibm_resource_instance.sql_instance.crn}"
+  value       = "[https://cloud.ibm.com/sql/launch?instance_crn=$](https://cloud.ibm.com/sql/launch?instance_crn=$){ibm_resource_instance.sql_instance.crn}"
 }
 
 output "4_Sample_Query" {
