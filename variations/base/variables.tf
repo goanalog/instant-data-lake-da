@@ -1,27 +1,30 @@
-# All variables are defined in the root offering.json
-# This file declares them so the module can use them.
-
 variable "prefix" {
   type        = string
-  description = "A unique prefix for all resources."
+  description = "Internal prefix for resources."
+  default     = "instant-dl-found" // New default
 }
-
-variable "resource_group_name" {
-  type        = string
-  description = "The name of the resource group."
-}
-
 variable "cos_instance_name" {
   type        = string
-  description = "Name for the Cloud Object Storage instance."
+  description = "Internal name for COS instance."
+  default     = "instant-dl-cos" // New default
 }
-
 variable "cos_bucket_name" {
   type        = string
-  description = "Name for the Cloud Object Storage bucket."
+  description = "Internal name for COS bucket."
+  default     = "instant-dl-bucket" // New default
 }
-
 variable "sql_query_instance_name" {
   type        = string
-  description = "Name for the SQL Query instance."
+  description = "Internal name for SQL Query instance."
+  default     = "instant-dl-sql" // New default
+}
+variable "resource_group_name" {
+  type        = string
+  description = "Internal resource group name."
+  default     = "Default"
+}
+variable "region" {
+  type        = string
+  description = "Internal deployment region."
+  default     = "us-south"
 }

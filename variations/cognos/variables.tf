@@ -1,33 +1,40 @@
-# All variables are defined in the root offering.json
-# This file declares them so the module can use them.
-
 variable "prefix" {
   type        = string
-  description = "A unique prefix for all resources."
+  description = "Internal prefix for resources."
+  default     = "instant-dl-analyt" // New default
 }
-
-variable "resource_group_name" {
-  type        = string
-  description = "The name of the resource group."
-}
-
 variable "cos_instance_name" {
   type        = string
-  description = "Name for the Cloud Object Storage instance."
+  description = "Internal name for COS instance."
+  default     = "instant-dl-cos" // Shared base name
 }
-
 variable "cos_bucket_name" {
   type        = string
-  description = "Name for the Cloud Object Storage bucket."
+  description = "Internal name for COS bucket."
+  default     = "instant-dl-bucket" // Shared base name
 }
-
 variable "sql_query_instance_name" {
   type        = string
-  description = "Name for the SQL Query instance."
+  description = "Internal name for SQL Query instance."
+  default     = "instant-dl-sql" // Shared base name
 }
-
-# --- NEW VARIABLE ---
 variable "cognos_instance_name" {
   type        = string
-  description = "Name for the Cognos Dashboard instance."
+  description = "Internal name for Cognos Analytics instance."
+  default     = "instant-dl-cognos" // New default
+}
+variable "cognos_plan" {
+  type        = string
+  description = "Internal plan for Cognos."
+  default     = "standard"
+}
+variable "resource_group_name" {
+  type        = string
+  description = "Internal resource group name."
+  default     = "Default"
+}
+variable "region" {
+  type        = string
+  description = "Internal deployment region."
+  default     = "us-south"
 }

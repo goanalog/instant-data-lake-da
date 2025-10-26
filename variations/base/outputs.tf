@@ -1,22 +1,30 @@
-output "STEP_1_UPLOAD_YOUR_DATA" {
-  description = "Your data lake is ready! Go to this URL to upload your first file (like 'customers.csv' from the sample data)."
-  value       = "https://s3.cloud-object-storage.appdomain.cloud/replace-with-your-endpoint/${ibm_cos_bucket.cos_bucket.bucket_name}/action?prefix="
+output "STEP_1_UPLOAD_SAMPLE_DATA" {
+  description = "Action: Find the 'sample-data' folder (in your repo/bundle) and upload customers.csv, devices.csv, and sales.csv to your COS bucket using the UI."
+  value       = "Target Bucket Name: ${ibm_cos_bucket.cos_bucket.bucket_name}"
 }
 
-output "STEP_2_RUN_SQL_QUERIES" {
-  description = "Great! Now, click this link to open the SQL Query UI."
-  value       = "https://sql-query.cloud.ibm.com/sqlquery/?instance_crn=${ibm_resource_instance.sql_query.guid}&target_cos_url=cos://${ibm_cos_bucket.cos_bucket.endpoint_public}/${ibm_cos_bucket.cos_bucket.bucket_name}/"
+output "STEP_2_RUN_SAMPLE_QUERY" {
+  description = "Action: Go to your SQL Query instance UI and run this sample query against the uploaded customers.csv."
+  # Assuming SQL Query endpoint implicitly knows the COS endpoint based on region/CRN
+  value = "SELECT * FROM cos://${var.region}/${ibm_cos_bucket.cos_bucket.bucket_name}/customers.csv STORED AS CSV WHERE Country = 'USA' LIMIT 10"
 }
 
-output "STEP_3_GET_SAMPLE_DATA_AND_QUERY" {
-  # 1. The description is now a static, helpful string.
-  description = "A sample SQL query to run on your new data lake after uploading the sample 'customers.csv' file."
-  
-  # 2. The dynamic string is moved to the 'value' field, where it is allowed.
-  value = "SELECT * FROM cos://${ibm_cos_bucket.cos_bucket.endpoint_public}/${var.cos_bucket_name}/customers.csv WHERE Country = 'USA' LIMIT 10"
+output "cos_instance_crn" {
+  description = "CRN of the provisioned Cloud Object Storage instance."
+  value       = ibm_resource_instance.cos_instance.crn
 }
 
-output "bucket_name" {
-  description = "The name of your new COS bucket."
+output "cos_bucket_name_actual" {
+  description = "The actual name of the created COS bucket (including random suffix)."
   value       = ibm_cos_bucket.cos_bucket.bucket_name
+}
+
+output "sql_query_instance_crn" {
+  description = "CRN of the provisioned SQL Query instance."
+  value       = ibm_resource_instance.sql_query_instance.crn
+}
+
+output "region_deployed" {
+  description = "The IBM Cloud region where resources were deployed."
+  value       = var.region
 }

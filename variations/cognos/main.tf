@@ -1,55 +1,52 @@
-# A random string for resource uniqueness.
-resource "random_string" "suffix" {
-  length  = 5
-  special = false
-  upper   = false
+variable "prefix" {
+  type        = string
+  description = "A unique prefix for all created resources (used internally, hidden from user)."
+  default     = "enterprise-cognos" 
 }
 
-# 1. Find the user's target resource group.
-data "ibm_resource_group" "group" {
-  name = var.resource_group_name
+variable "resource_group_name" {
+  type        = string
+  description = "The resource group to deploy resources into (used internally, hidden from user)."
+  default     = "Default"
 }
 
-# 2. Provision the Cloud Object Storage (COS) instance.
-resource "ibm_resource_instance" "cos_instance" {
-  name              = "${var.cos_instance_name}-${var.prefix}-${random_string.suffix.result}"
-  service           = "cloud-object-storage"
-  plan              = "lite"
-  location          = "global"
-  resource_group_id = data.ibm_resource_group.group.id
-  tags              = ["instant-data-lake", "cognos", "lite"]
+variable "cos_instance_name" {
+  type        = string
+  description = "Name for the Cloud Object Storage instance (used internally, hidden from user)."
+  default     = "enterprise-cognos-cos"
 }
 
-# 3. Provision the COS Bucket.
-resource "ibm_resource_bucket" "cos_bucket" {
-  bucket_name          = "${var.cos_bucket_name}-${var.prefix}-${random_string.suffix.result}"
-  resource_instance_id = ibm_resource_instance.cos_instance.id
-  region_location      = "us-south" # Co-locating with SQL Query
-  storage_class        = "smart"
+variable "cos_bucket_name" {
+  type        = string
+  description = "Name for the Cloud Object Storage bucket (used internally, hidden from user)."
+  default     = "enterprise-cognos-bucket"
 }
 
-# 4. Provision the SQL Query instance.
-resource "ibm_resource_instance" "sql_instance" {
-  name              = "${var.sql_query_instance_name}-${var.prefix}-${random_string.suffix.result}"
-  service           = "sql-query"
-  plan              = "lite"
-  location          = "us-south" # Co-locating with COS Bucket
-  resource_group_id = data.ibm_resource_group.group.id
-  tags              = ["instant-data-lake", "cognos", "lite"]
-
-  # --- THE MAGIC LINK ---
-  parameters = {
-    target_cos_crn = ibm_resource_bucket.cos_bucket.crn
-  }
+variable "sql_query_instance_name" {
+  type        = string
+  description = "Name for the SQL Query instance (used internally, hidden from user)."
+  default     = "enterprise-cognos-sql"
 }
 
-# 5. --- NEW SERVICE ---
-# Provision the Cognos Dashboard Embedded instance.
-resource "ibm_resource_instance" "cognos_instance" {
-  name              = "${var.cognos_instance_name}-${var.prefix}-${random_string.suffix.result}"
-  service           = "dashboard-embedded"
-  plan              = "lite"
-  location          = "us-south"
-  resource_group_id = data.ibm_resource_group.group.id
-  tags              = ["instant-data-lake", "cognos", "lite"]
+variable "region" {
+  type        = string
+  description = "The IBM Cloud region where resources will be deployed (used internally, hidden from user)."
+  default     = "us-south"
 }
+
+# --- Cognos Specific Variables ---
+
+variable "cognos_instance_name" {
+  type        = string
+  description = "Name for the Cognos Analytics instance (used internally, hidden from user)."
+  default     = "enterprise-cognos-analytics"
+}
+
+variable "cognos_plan" {
+  type        = string
+  description = "The plan for the Cognos Analytics service (used internally, hidden from user)."
+  default     = "standard" # Note: Check if this is the correct plan ID for the paid plan after trial.
+}
+
+# Add any other variables specifically needed ONLY for the 'cognos' variation here,
+# ensuring they also have a default value.
