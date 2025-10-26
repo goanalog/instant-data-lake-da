@@ -3,7 +3,7 @@
   "label": "Instant Data Lake (Foundation, Analytics, Integration)",
   "short_description": "Quickly deploy a serverless data lake foundation (free tier) or add Cognos Analytics (trial) or App Connect (free tier).",
   "long_description": "Get started instantly with a serverless data lake. Choose your flavor:\n1. **Foundation:** Core object storage & SQL query (uses free tiers).\n2. **Analytics:** Foundation + Cognos Analytics for BI (30-day trial, then paid).\n3. **Integration:** Foundation + App Connect for simple workflows (uses free Lite tier).\nZero-input deployment with sensible defaults. Always check current IBM Cloud pricing.",
-  "version": "1.1.0", // Incremented version
+  "version": "1.1.0",
   "kind": "terraform",
   "tags": [
     "g-cost-synthesis",
@@ -35,7 +35,7 @@
       "name": "foundation",
       "label": "Foundation (Free Tier)",
       "short_description": "Best for instant, cost-free data lake storage & querying.",
-      "working_directory": "variations/base", // Folder name remains 'base'
+      "working_directory": "variations/base",
       "install_type": "fullstack",
       "configuration": [
         { "key": "prefix", "type": "string", "hidden": true },
@@ -50,7 +50,7 @@
       "name": "analytics",
       "label": "Foundation + Analytics (Paid after Trial)",
       "short_description": "Best for adding instant BI with Cognos (paid after 30-day trial).",
-      "working_directory": "variations/cognos", // Folder name remains 'cognos'
+      "working_directory": "variations/cognos",
       "install_type": "fullstack",
       "configuration": [
         { "key": "prefix", "type": "string", "hidden": true },
@@ -67,7 +67,7 @@
       "name": "integration",
       "label": "Foundation + Integration (Free Tier)",
       "short_description": "Best for connecting apps instantly with App Connect (free tier limits).",
-      "working_directory": "variations/appconnect", // Folder name remains 'appconnect'
+      "working_directory": "variations/appconnect",
       "install_type": "fullstack",
       "configuration": [
         { "key": "prefix", "type": "string", "hidden": true },
