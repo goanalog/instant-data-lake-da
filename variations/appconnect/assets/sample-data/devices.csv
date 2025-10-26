@@ -1,0 +1,3 @@
+device_id,event,timestamp
+alpha-01,boot,2025-10-01T10:00:00Z
+alpha-01,metric,2025-10-01T10:05:00Z
