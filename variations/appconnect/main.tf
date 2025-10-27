@@ -4,7 +4,7 @@ terraform {
   required_providers {
     ibm = {
       source  = "IBM-Cloud/ibm"
-      version = ">= 1.84.0"
+      version = ">= 1.79.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -33,7 +33,6 @@ resource "random_string" "suffix" {
   special = false
 }
 
-# COS Instance
 resource "ibm_resource_instance" "cos" {
   name              = "${var.bucket_prefix}-cos-${random_string.suffix.result}"
   service           = "cloud-object-storage"
@@ -42,47 +41,38 @@ resource "ibm_resource_instance" "cos" {
   resource_group_id = local.rg_id
 }
 
-# COS HMAC credentials
 resource "ibm_resource_key" "cos_hmac" {
   name                 = "${var.bucket_prefix}-hmac-${random_string.suffix.result}"
   role                 = "Writer"
   resource_instance_id = ibm_resource_instance.cos.id
 
-  parameters = {
+  parameters_json = jsonencode({
     HMAC = true
-  }
+  })
 }
 
-# COS Bucket
 resource "ibm_cos_bucket" "bucket" {
   bucket_name          = "${var.bucket_prefix}-${random_string.suffix.result}"
   resource_instance_id = ibm_resource_instance.cos.id
   region_location      = var.region
   storage_class        = "standard"
   force_delete         = true
-}
-
-# Enable website hosting
-resource "ibm_cos_bucket_configuration" "website" {
-  bucket_crn = ibm_cos_bucket.bucket.crn
 
   website {
-    enable         = true
     index_document = "index.html"
     error_document = "index.html"
   }
 }
 
-# Code Engine Project
 resource "ibm_code_engine_project" "proj" {
   name              = "idl-proj-${random_string.suffix.result}"
   resource_group_id = local.rg_id
 }
 
-# Secret for COS access keys
 resource "ibm_code_engine_secret" "cos_secret" {
   project_id = ibm_code_engine_project.proj.id
   name       = "idl-cos-secret-${random_string.suffix.result}"
+  format     = "generic"
 
   data = {
     COS_ACCESS_KEY_ID     = ibm_resource_key.cos_hmac.credentials["cos_hmac_keys.access_key_id"]
@@ -92,45 +82,42 @@ resource "ibm_code_engine_secret" "cos_secret" {
   }
 }
 
-# Code Engine Application (Helper)
 resource "ibm_code_engine_app" "idl_helper" {
   name       = "idl-helper-${random_string.suffix.result}"
   project_id = ibm_code_engine_project.proj.id
 
-  image_reference = var.app_image
+  image  = var.app_image
+  cpu    = "1"
+  memory = "1G"
+  port   = 8080
 
   scale_min_instances = 0
   scale_max_instances = 5
 
-  env_variable {
-    name = "COS_ACCESS_KEY_ID"
-    value_from_secret {
-      secret_name = ibm_code_engine_secret.cos_secret.name
-      secret_key  = "COS_ACCESS_KEY_ID"
+  run_env_variables = [
+    {
+      type = "secret"
+      name = "COS_ACCESS_KEY_ID"
+      key  = "COS_ACCESS_KEY_ID"
+      ref  = ibm_code_engine_secret.cos_secret.name
+    },
+    {
+      type = "secret"
+      name = "COS_SECRET_ACCESS_KEY"
+      key  = "COS_SECRET_ACCESS_KEY"
+      ref  = ibm_code_engine_secret.cos_secret.name
+    },
+    {
+      type  = "secret"
+      name  = "COS_ENDPOINT"
+      key   = "COS_ENDPOINT"
+      ref   = ibm_code_engine_secret.cos_secret.name
+    },
+    {
+      type  = "secret"
+      name  = "COS_BUCKET"
+      key   = "COS_BUCKET"
+      ref   = ibm_code_engine_secret.cos_secret.name
     }
-  }
-
-  env_variable {
-    name = "COS_SECRET_ACCESS_KEY"
-    value_from_secret {
-      secret_name = ibm_code_engine_secret.cos_secret.name
-      secret_key  = "COS_SECRET_ACCESS_KEY"
-    }
-  }
-
-  env_variable {
-    name = "COS_ENDPOINT"
-    value_from_secret {
-      secret_name = ibm_code_engine_secret.cos_secret.name
-      secret_key  = "COS_ENDPOINT"
-    }
-  }
-
-  env_variable {
-    name = "COS_BUCKET"
-    value_from_secret {
-      secret_name = ibm_code_engine_secret.cos_secret.name
-      secret_key  = "COS_BUCKET"
-    }
-  }
+  ]
 }
