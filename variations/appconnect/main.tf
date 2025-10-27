@@ -3,7 +3,7 @@ terraform {
   required_providers {
     ibm = {
       source  = "IBM-Cloud/ibm"
-      version = ">= 1.84.0" # Use the modern provider
+      version = ">= 1.84.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -112,11 +112,13 @@ resource "ibm_code_engine_secret" "registry" {
   }
 }
 
+# --- THIS RESOURCE HAS BEEN UPDATED ---
 resource "ibm_code_engine_build" "helper_app" {
   project_id = ibm_code_engine_project.ce.id
   name       = "${var.helper_app_name}-build"
   
   strategy_type     = "dockerfile"
+  source_type       = "local"
   source_local_path = "${path.module}/../../helper-app"
   
   strategy_dockerfile = "Dockerfile.txt"
@@ -127,7 +129,6 @@ resource "ibm_code_engine_build" "helper_app" {
   depends_on = [ibm_code_engine_project.ce, ibm_cr_namespace.ns]
 }
 
-# --- THIS RESOURCE HAS BEEN UPDATED ---
 resource "ibm_code_engine_config_map" "cfg" {
   project_id = ibm_code_engine_project.ce.id
   name       = "${var.helper_app_name}-cfg"
