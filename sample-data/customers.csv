@@ -1,3 +1,5 @@
-customer_id,name,segment
-1001,Acme Corp,Enterprise
-1002,Beta LLC,SMB
+customer_id,name
+1,Alice
+2,Bob
+3,Chandra
+4,Diego

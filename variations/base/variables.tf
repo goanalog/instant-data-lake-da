@@ -1,33 +1,49 @@
-variable "prefix" {
-  type        = string
-  description = "Internal prefix for resources."
-  default     = "instant-dl-found"
-}
-variable "cos_instance_name" {
-  type        = string
-  description = "Internal name for COS instance."
-  default     = "instant-dl-cos"
-}
-variable "cos_bucket_name" {
-  type        = string
-  description = "Internal name for COS bucket."
-  default     = "instant-dl-bucket"
-}
-variable "sql_query_instance_name" {
-  type        = string
-  description = "Internal name for SQL Query instance."
-  default     = "instant-dl-sql"
-}
-variable "resource_group_name" {
-  type        = string
-  description = "Internal resource group name."
-  default     = "Default"
-}
 variable "region" {
   type        = string
-  description = "Internal deployment region."
-  default     = "us-east" # <-- CHANGED default region
+  description = "Region for regional resources (e.g., us-south)."
+  default     = "us-south"
 }
 
-# Add any other variables specifically needed ONLY for the 'base' variation here,
-# ensuring they also have a default value.
+variable "resource_group_name" {
+  type        = string
+  description = "Resource Group to deploy into."
+  default     = "Default"
+}
+
+variable "prefix" {
+  type        = string
+  description = "Prefix for resource names. A random suffix will be added for uniqueness."
+  default     = "idlake"
+}
+
+variable "code_engine_project_name" {
+  type        = string
+  description = "Code Engine project name."
+  default     = "idlake-ce"
+}
+
+variable "helper_app_name" {
+  type        = string
+  description = "Code Engine app name."
+  default     = "idlake-helper"
+}
+
+# ICR namespace to create/use for the built image
+variable "icr_namespace" {
+  type        = string
+  description = "IBM Cloud Container Registry (ICR) namespace (will be created if missing)."
+  default     = "idlake"
+}
+
+variable "image_tag" {
+  type        = string
+  description = "Tag applied to the built helper image."
+  default     = "1.0.0"
+}
+
+# Sensitive: used by CE build to push to ICR as 'iamapikey'
+variable "ibmcloud_api_key" {
+  type        = string
+  description = "IBM Cloud API key with permission to write to ICR and manage resources in the target Resource Group."
+  sensitive   = true
+}

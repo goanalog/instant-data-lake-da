@@ -1,84 +1,26 @@
 {
-  "name": "instant-data-lake-stack",
-  "label": "Instant Data Lake (Foundation, Analytics, Integration)",
-  "short_description": "Quickly deploy a serverless data lake foundation (free tier) or add Cognos Analytics (trial) or App Connect (free tier).",
-  "long_description": "Get started instantly with a serverless data lake. Choose your flavor:\n1. **Foundation:** Core object storage & SQL query (uses free tiers).\n2. **Analytics:** Foundation + Cognos Analytics for BI (30-day trial, then paid).\n3. **Integration:** Foundation + App Connect for simple workflows (uses free Lite tier).\nZero-input deployment with sensible defaults. Always check current IBM Cloud pricing.",
-  "version": "1.1.0",
-  "kind": "terraform",
+  "name": "instant-data-lake-da",
+  "version": "1.0.0",
+  "label": "Instant Data Lake — Serverless Helper App",
+  "description": "Deploy a ready-to-explore data lake on IBM Cloud using Object Storage and a serverless Helper App on Code Engine. Includes sample CSVs and shareable live URL. No external downloads. Built and deployed entirely during terraform apply.",
+  "type": "terraform",
+  "product_kind": "solution",
+  "provider": "IBM",
   "tags": [
-    "g-cost-synthesis",
-    "iaas",
     "data-lake",
+    "object-storage",
+    "code-engine",
     "serverless",
-    "cos",
-    "sql-query",
-    "cognos",
-    "appconnect",
-    "ibm-public-compliance",
-    "free-tier",
-    "paid-service",
-    "trial"
+    "demo",
+    "lite-plan",
+    "terraform",
+    "ibm-cloud"
   ],
-  "provider_name": "IBM",
-  "architecture": {
-    "diagrams": [
-      {
-        "diagram": {
-          "url": "diagram.svg",
-          "caption": "Instant Data Lake Architecture Overview"
-        }
-      }
-    ]
+  "metadata": {
+    "source": "https://github.com/goanalog/instant-data-lake-da",
+    "documentation": "https://github.com/goanalog/instant-data-lake-da#readme"
   },
-  "flavors": [
-    {
-      "name": "foundation",
-      "label": "Foundation (Free Tier)",
-      "short_description": "Best for instant, cost-free data lake storage & querying.",
-      "working_directory": "variations/base",
-      "install_type": "fullstack",
-      "configuration": [
-        { "key": "prefix", "type": "string", "hidden": true },
-        { "key": "resource_group_name", "type": "string", "hidden": true },
-        { "key": "cos_instance_name", "type": "string", "hidden": true },
-        { "key": "cos_bucket_name", "type": "string", "hidden": true },
-        { "key": "sql_query_instance_name", "type": "string", "hidden": true },
-        { "key": "region", "type": "string", "hidden": true }
-      ]
-    },
-    {
-      "name": "analytics",
-      "label": "Foundation + Analytics (Paid after Trial)",
-      "short_description": "Best for adding instant BI with Cognos (paid after 30-day trial).",
-      "working_directory": "variations/cognos",
-      "install_type": "fullstack",
-      "configuration": [
-        { "key": "prefix", "type": "string", "hidden": true },
-        { "key": "resource_group_name", "type": "string", "hidden": true },
-        { "key": "cos_instance_name", "type": "string", "hidden": true },
-        { "key": "cos_bucket_name", "type": "string", "hidden": true },
-        { "key": "sql_query_instance_name", "type": "string", "hidden": true },
-        { "key": "cognos_instance_name", "type": "string", "hidden": true },
-        { "key": "cognos_plan", "type": "string", "hidden": true },
-        { "key": "region", "type": "string", "hidden": true }
-      ]
-    },
-    {
-      "name": "integration",
-      "label": "Foundation + Integration (Free Tier)",
-      "short_description": "Best for connecting apps instantly with App Connect (free tier limits).",
-      "working_directory": "variations/appconnect",
-      "install_type": "fullstack",
-      "configuration": [
-        { "key": "prefix", "type": "string", "hidden": true },
-        { "key": "resource_group_name", "type": "string", "hidden": true },
-        { "key": "cos_instance_name", "type": "string", "hidden": true },
-        { "key": "cos_bucket_name", "type": "string", "hidden": true },
-        { "key": "sql_query_instance_name", "type": "string", "hidden": true },
-        { "key": "appconnect_instance_name", "type": "string", "hidden": true },
-        { "key": "appconnect_plan", "type": "string", "hidden": true },
-        { "key": "region", "type": "string", "hidden": true }
-      ]
-    }
+  "hidden_inputs": [
+    "ibmcloud_api_key"
   ]
 }

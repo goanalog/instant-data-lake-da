@@ -1,65 +1,54 @@
-# Instant Data Lake
+# Instant Data Lake Starter Kit 🚀
 
-This deployable architecture provides a streamlined way to provision infrastructure on IBM Cloud, offering several variations to suit common enterprise needs for a serverless data lake.
+Get a simple, serverless data lake up and running on IBM Cloud in **minutes**, with **zero configuration** required! This kit deploys the essential building blocks and lets you query sample data almost immediately using a simple web app.
 
-## Overview
+## What You Get Instantly
 
-Deploy core data lake components (Cloud Object Storage, SQL Query) instantly and optionally integrate powerful analytics (Cognos Analytics) or integration services (App Connect). This architecture is designed for ease of use with a zero-input deployment experience by using sensible defaults.
+This starter kit automatically sets up core data lake services (Cloud Object Storage for storing files and Db2 Warehouse on Cloud for running SQL on those files). It also deploys a small "Helper App" to guide you through running your first query on sample data with just button clicks. You can choose to add powerful analytics with Cognos or easy app integration with App Connect.
 
-## Variations and Pricing 🪙
+## Choose Your Kit Flavor ✨
 
-This deployable architecture offers three variations to suit different needs:
+Pick the starting point that's right for you:
 
-1.  **Foundation (Free Tier):** Deploys foundational services including IBM Cloud Object Storage (COS) and SQL Query. **This variation primarily utilizes services with "Always Free" Lite plans or generous free tiers, making it generally free to run within usage limits.** ✅
-2.  **Foundation + Analytics (Paid after Trial):** Builds upon the Foundation by adding IBM Cognos Analytics on Cloud. While COS and SQL Query have free options, **Cognos Analytics offers only a 30-day free trial**. Continued use after the trial requires a paid subscription. ⚠️
-3.  **Foundation + Integration (Free Tier):** Extends the Foundation with IBM App Connect. App Connect offers an "Always Free" Lite plan with usage limits (e.g., flow runs per month). **This variation can often run for free if usage stays within the Lite plan limits**, but paid plans are necessary for higher volumes. ✅ / ⚠️
+1.  **Foundation (Free to Start):** Get the basics – object storage (COS), a Db2 Warehouse instance, and the Helper App. **Query public sample data right after setup via the app! Perfect for trying things out or small projects, as it runs on IBM Cloud's free plans (within limits).** ✅
+2.  **Foundation + Analytics (Cognos Trial):** Adds IBM Cognos Analytics for creating dashboards and finding AI-driven insights in your data. **Cognos includes a 30-day free trial, but requires a paid plan for longer use.** ⚠️
+3.  **Foundation + Integration (App Connect Free):** Adds IBM App Connect to easily connect your data lake to other apps and automate workflows. **Uses App Connect's free plan, which has monthly usage limits.** ✅ / ⚠️
 
-**Always review the current IBM Cloud pricing documentation for the most up-to-date details on free tier limits and service costs.**
+**Important Note on Costs:** While the Foundation and Integration flavors use free plans, always check the current IBM Cloud pricing documentation for the latest details on limits and potential costs if you exceed them. The Analytics flavor *will* require payment after the 30-day Cognos trial.
 
-## Architecture
-
-*(Placeholder: You should link or embed your `diagram.svg` here)*
-
-[Image: Overall Instant Data Lake Architecture] Caption: Overall architecture showing the core components and optional integrations.
+## How it Works (Simple View)
 
 
-## Sample Data Included 📊
+## Instant Sample Query & Included Data 📊
 
-This package includes sample CSV files (`customers.csv`, `devices.csv`, `sales.csv`) located in the `sample-data/` directory of the repository or downloaded bundle.
+To provide an **instant query experience**, the deployed Helper App includes buttons to connect your new Db2 Warehouse instance to a **publicly hosted version** of sample customer data and run a query – all without writing SQL yourself initially!
 
-After deployment, you will need to **manually upload** these files to the Cloud Object Storage (COS) bucket created by the architecture to run the sample queries provided in the deployment outputs.
+Additionally, this package includes sample CSV files (`customers.csv`, `devices.csv`, `sales.csv`) in the `sample-data/` folder for your own use. After running the instant demo query via the Helper App, the app and this documentation guide you on how to upload these files (or your own data) to **your private COS bucket** and query that data using the Db2 console.
 
-## Prerequisites
+## Quick Start Guide
 
-* An IBM Cloud account with Pay-As-You-Go or Subscription plan.
-* Appropriate IAM permissions (Editor/Manager on Schematics, Editor on Catalog Management, potentially roles for COS, SQL Query, Cognos, App Connect depending on variation).
+1.  **Add to Your Catalog:** Add this starter kit to your private catalog in IBM Cloud using the release `.tgz` URL from the Git repository.
+2.  **Find it:** Go to the IBM Cloud Catalog and select your private catalog. Find the "Instant Data Lake Starter Kit" tile.
+3.  **Choose a Flavor:** Click the tile and pick the flavor (Foundation, Analytics, or Integration) you want to deploy.
+4.  **Add to Project:** Click "Add to project" (create a new project if needed).
+5.  **Validate (1 Click):** On the project screen (no settings to change!), click **"Validate"**. Check the plan.
+6.  **Deploy (1 Click):** Click **"Apply"**. Resources (including the Helper App) will be created automatically. This might take **10-15 minutes** or more, especially the first time Code Engine builds the app image. 🎉
+7.  **Use It!:** Check the "Outputs" tab after deployment for the `HELPER_APP_URL`.
+    * Click the URL to open the Helper App.
+    * Follow the simple steps in the app: Click Button 1 ("Prepare Sample Data Table"), then Click Button 2 ("Run Sample Query").
+    * See instant results!
+    * Refer to the app's "Next Steps" / "Handy References" and the detailed README for your chosen flavor (in the `variations/...` folder) to learn how to upload your own data and query it.
 
-## How to Deploy
+## What Gets Created
 
-1.  **Onboard to Private Catalog:** Add this deployable architecture to your private catalog in IBM Cloud using the release `.tgz` URL from your Git repository.
-2.  **Navigate to Catalog:** Go to the IBM Cloud Catalog and select your private catalog.
-3.  **Find the DA:** Locate the "Instant Data Lake" tile.
-4.  **Select Variation:** Click the tile and choose the desired variation (Foundation, Analytics, or Integration) based on your needs and pricing considerations.
-5.  **Add to Project:** Click "Add to project" and either create a new project or select an existing one.
-6.  **Validate:** On the project configuration screen (no inputs needed!), click "Validate". Review the plan.
-7.  **Deploy:** Click "Apply" to provision the resources.
-8.  **Use:** Follow the instructions in the "Getting Started with Sample Data" section within the chosen variation's README (and the deployment Outputs) to begin using your Instant Data Lake.
+Depending on the flavor, you'll get instances of:
 
-## Deployed Resources
+* IBM Cloud Object Storage (COS) & Bucket
+* IBM Db2 Warehouse on Cloud
+* IBM Secrets Manager & Secret
+* IBM Code Engine Project & Application (the Helper App)
+* IAM Service ID, API Key & Policies
+* (Analytics Flavor) IBM Cognos Analytics
+* (Integration Flavor) IBM App Connect
 
-Depending on the variation chosen, the following IBM Cloud resources will be provisioned:
 
-* IBM Cloud Object Storage instance
-* IBM Cloud Object Storage bucket
-* IBM SQL Query instance
-* (Analytics Variation) IBM Cognos Analytics instance
-* (Integration Variation) IBM App Connect instance
-* (Potentially) IAM policies or other supporting resources defined in the Terraform code.
-
-## Outputs
-
-After successful deployment, check the "Outputs" tab in your project configuration for useful information, such as:
-
-* The name of the created COS bucket.
-* Instructions and a sample query to run using SQL Query on the included sample data (once uploaded).
-* CRNs or IDs of the provisioned service instances.

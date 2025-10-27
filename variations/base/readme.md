@@ -1,53 +1,60 @@
-# Instant Data Lake - Foundation Variation
+# Instant Data Lake - Foundation Flavor
 
-This variation deploys the foundational components for a basic, serverless data lake setup on IBM Cloud using free tier services.
+This flavor instantly deploys the core components for your simple, serverless data lake using free IBM Cloud plans, **plus a helper app** to get you querying sample data with just a few clicks!
 
-## Features
+## What You Can Do
 
-* Provisions an IBM Cloud Object Storage (COS) instance (Standard Plan for Free Tier access).
-* Creates a COS bucket (Smart Tier for Free Tier access).
-* Provisions an IBM SQL Query instance (Lite Plan).
-* Configures SQL Query to use the created COS instance by default.
+* **Store Any Data:** Get an Object Storage (COS) bucket ready for your files.
+* **Query with SQL Instantly:** Get a managed Db2 Warehouse instance.
+* **Click-Button Setup:** Use the deployed Helper Web App to automatically link Db2 to public sample data and run your first query.
 
-## Pricing Considerations 🪙
+## Pricing - Free to Start! 🪙
 
-This variation deploys the following key IBM Cloud services:
+This flavor uses free plans:
 
-* **IBM Cloud Object Storage (COS):** Configured using the **Standard Plan with a Smart Tier bucket** to leverage the **Free Tier (free up to 5GB/month for 12 months, plus request/egress allowances)**. Alternatively, you could modify the `main.tf` to use the **Lite Plan (always free up to 25GB/month)** if preferred, though Lite plans are being deprecated.
-* **IBM SQL Query:** Configured to use the **Lite plan (always free up to a certain data scanned limit per month)**.
+* **IBM Cloud Object Storage (COS):** Uses the **Lite Plan (free)**. *Note: Deprecated.*
+* **IBM Db2 Warehouse on Cloud:** Uses the **Lite plan (free)**.
+* **IBM Code Engine:** Uses the **Free Tier** (based on usage, this app is tiny).
+* **IBM Secrets Manager:** Uses the **Lite Plan (free)**.
 
-✅ **This variation is designed to operate within the free tiers/plans of its core components under typical usage.** Exceeding free tier limits (e.g., storing more data, exceeding request limits, scanning large amounts of data) will incur standard pay-as-you-go charges.
+✅ **This setup runs for free within the plan limits.** Ensure your account doesn't already have conflicting Lite plan instances.
 
-## Best For
+## Who Is This For?
 
-* Users needing instant, cost-effective object storage and serverless data querying capabilities.
-* Getting started with data lake concepts on IBM Cloud at little to no cost.
-* Foundation layer for potentially adding other services later.
+* Anyone wanting the **absolute fastest, easiest, no-cost** way to store data and see SQL query results.
+* Users **new to data lakes** wanting a guided, zero-config start.
 
-## Prerequisites
+## What Gets Created
 
-* Deployment of this variation via the main "Instant Data Lake" catalog entry.
+* 1 x COS instance (`lite`) & bucket
+* 1 x Db2 Warehouse instance (`lite`)
+* 1 x Secrets Manager instance (`lite`) & secret
+* 1 x Code Engine Project & Application (Helper App)
+* IAM Service ID, API Key, and Policies
 
-## Deployed Resources
+## Get Started Fast - Just Click!
 
-* 1 x IBM Cloud Object Storage instance (`standard` plan)
-* 1 x IBM Cloud Object Storage bucket (`smart` tier)
-* 1 x IBM SQL Query instance (`lite` plan)
+Your data lake foundation and helper app are ready!
 
-## Getting Started with Sample Data
+1.  **Check Outputs:** After deployment finishes (allow **10-15+ minutes** for the first build), go to the **Outputs** tab in your IBM Cloud Project or Schematics workspace.
+2.  **Launch Helper App:** Click the URL provided in the `HELPER_APP_URL` output.
+3.  **Click Button 1:** In the web app, click **"Prepare Sample Data Table"**. Wait for the success message (this links your Db2 to public sample data).
+4.  **Click Button 2:** Click **"Run Sample Query"**.
+5.  **✨ See Results Instantly! ✨** The sample data query results will appear right in the web app!
 
-This deployable architecture creates the necessary infrastructure (COS bucket, SQL Query instance). To query sample data:
+## Using Your Own Data (Next Steps)
 
-1.  **Locate Sample Data:** Find the `sample-data/` folder in the root directory where you cloned this repository or extracted the downloaded bundle. It contains `customers.csv`, `devices.csv`, and `sales.csv`.
-2.  **Find Your Bucket:** Go to your IBM Cloud Resource List, find the Cloud Object Storage instance (named similar to `instant-dl-cos-XXX`), and navigate to the bucket created by this deployment (named similar to `instant-dl-bucket-XXX`). Check the **Outputs** tab of your deployment for the exact bucket name.
-3.  **Manual Upload:** Using the COS UI, **upload** the `customers.csv`, `devices.csv`, and `sales.csv` files directly into the root of the bucket.
-4.  **Run Sample Query:** Go to the SQL Query instance UI (named similar to `instant-dl-sql-XXX`). Use the sample query provided in the Terraform deployment **Outputs** section (`STEP_2_RUN_SAMPLE_QUERY`) to query the `customers.csv` data you just uploaded. You can easily adapt the query for `devices.csv` or `sales.csv` by changing the filename in the `FROM` clause.
+1.  **Find Your Private Bucket:** Note the bucket name provided in the `YOUR_PRIVATE_BUCKET_INFO` output, or use the direct link in the `cos_bucket_console_url` output.
+2.  **Locate Sample Files:** Find the `sample-data/` folder in the main project directory you downloaded/cloned (`customers.csv`, `devices.csv`, `sales.csv`).
+3.  **Upload:** Use the COS UI (via the link or Resource List) to upload these files (or your own data) into **your private bucket**.
+4.  **Create Your External Table:** Connect to your Db2 Warehouse instance using the IBM Cloud UI console (link in `db2_warehouse_console_url` output or find it in your Resource List). Adapt the `CREATE EXTERNAL TABLE` command from the Helper App's logic (or the example in `YOUR_PRIVATE_BUCKET_INFO` output) to point to *your* bucket and file. Run this command in the Db2 console.
+5.  **Query Your Table:** Run `SELECT * FROM YOUR_TABLE LIMIT 10;` in the Db2 console.
 
-## Outputs
+## Deployment Outputs
 
-Check the deployment Outputs tab for:
+Check the "Outputs" tab for:
 
-* Instructions for uploading sample data.
-* A ready-to-run SQL query for the sample `customers.csv` data.
-* The CRN (Cloud Resource Name) of the provisioned COS instance.
-* The CRN of the provisioned SQL Query instance.
+* The URL for the Helper App (your main starting point!).
+* Information about your private bucket and console link.
+* Direct links to the consoles for Db2 Warehouse, Code Engine, and Secrets Manager.
+* Names/IDs for the created instances.

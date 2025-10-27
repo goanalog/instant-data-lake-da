@@ -1,5 +1,4 @@
-Flask>=2.0
-ibm-cos-sdk>=2.11.0
-ibm-db>=3.0.0
-ibm-secrets-manager-sdk>=1.0.0
-requests>=2.25.0
+flask
+flask_cors
+gunicorn
+boto3
