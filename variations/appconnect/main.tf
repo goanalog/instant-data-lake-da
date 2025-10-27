@@ -118,10 +118,9 @@ resource "ibm_code_engine_build" "helper_app" {
   name          = "${var.helper_app_name}-build"
   
   # New arguments based on provider update
-  strategy_type = "dockerfile"
-  dockerfile    = "Dockerfile.txt"
-  source_type   = "local"
-  source_path   = "${path.module}/../../helper-app"
+  strategy_type       = "dockerfile"
+  strategy_dockerfile = "Dockerfile.txt"
+  source_local        = "${path.module}/../../helper-app"
 
   # Old arguments that are still correct
   output_image  = local.image_repo
@@ -139,13 +138,14 @@ resource "ibm_code_engine_config_map" "cfg" {
   }
 }
 
+# --- THIS RESOURCE HAS BEEN UPDATED ---
 resource "ibm_code_engine_secret" "cos_secret" {
   project_id = ibm_code_engine_project.ce.id
   name       = "${var.helper_app_name}-cos"
   format     = "generic"
   data = {
-    COS_ACCESS_KEY_ID     = try(ibm_resource_key.cos_key.credentials["cos_hmac_keys"]["access_key_id"], "")
-    COS_SECRET_ACCESS_KEY = try(ibm_resource_key.cos_key.credentials["cos_hmac_keys"]["secret_access_key"], "")
+    COS_ACCESS_KEY_ID     = try(ibm_resource_key.cos_key.credentials["cos_hmac_keys.access_key_id"], "")
+    COS_SECRET_ACCESS_KEY = try(ibm_resource_key.cos_key.credentials["cos_hmac_keys.secret_access_key"], "")
   }
 }
 
