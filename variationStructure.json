@@ -4,6 +4,14 @@
     {
       "name": "Base",
       "path": "./variations/base"
+    },
+    {
+      "name": "Cognos",
+      "path": "./variations/cognos"
+    },
+    {
+      "name": "App Connect",
+      "path": "./variations/appconnect"
     }
   ]
 }
