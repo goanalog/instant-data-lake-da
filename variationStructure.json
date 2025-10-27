@@ -1,0 +1,9 @@
+{
+  "variation_root": "./variations",
+  "variation_folders": [
+    {
+      "name": "Base",
+      "path": "./variations/base"
+    }
+  ]
+}
