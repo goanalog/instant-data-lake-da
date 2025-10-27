@@ -34,6 +34,18 @@ resource "random_string" "suffix" {
 }
 
 resource "ibm_resource_instance" "cos" {
+resource "ibm_cos_bucket" "bucket" {
+  bucket_name          = "${var.bucket_prefix}-${random_string.suffix.result}"
+  resource_instance_id = ibm_resource_instance.cos.id
+  region_location      = var.region
+  storage_class        = "standard"
+  force_delete         = true
+
+  website {
+    index_document = "index.html"
+    error_document = "index.html"
+  }
+}
   name              = "${var.bucket_prefix}-cos-${random_string.suffix.result}"
   service           = "cloud-object-storage"
   plan              = "lite"
@@ -41,26 +53,6 @@ resource "ibm_resource_instance" "cos" {
   resource_group_id = local.rg_id
 }
 
-resource "ibm_cos_bucket" "bucket" {
-  bucket_name          = "${var.bucket_prefix}-${random_string.suffix.result}"
-  resource_instance_id = ibm_resource_instance.cos.id
-  region_location      = var.region
-  storage_class        = "standard"
-  force_delete         = true
-  website {
-    index_document = "index.html"
-    error_document = "index.html"
-  }  website {
-  }
-  }
-
-
-resource "ibm_resource_key" "cos_hmac" {
-  name                 = "${var.bucket_prefix}-hmac-${random_string.suffix.result}"
-  role                 = "Writer"
-  resource_instance_id = ibm_resource_instance.cos.id
-  parameters_json      = jsonencode({ HMAC = true })
-}
 
 resource "ibm_code_engine_project" "proj" {
   name              = "idl-proj-${random_string.suffix.result}"
