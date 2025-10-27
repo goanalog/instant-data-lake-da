@@ -112,17 +112,18 @@ resource "ibm_code_engine_secret" "registry" {
   }
 }
 
+# --- THIS RESOURCE HAS BEEN UPDATED ---
 resource "ibm_code_engine_build" "helper_app" {
-  project_id  = ibm_code_engine_project.ce.id
-  name        = "${var.helper_app_name}-build"
-  source      = "local"
-  context_dir = "${path.module}/../../helper-app"
+  project_id    = ibm_code_engine_project.ce.id
+  name          = "${var.helper_app_name}-build"
+  
+  # New arguments based on provider update
+  strategy_type = "dockerfile"
+  dockerfile    = "Dockerfile.txt"
+  source_type   = "local"
+  source_path   = "${path.module}/../../helper-app"
 
-  strategy {
-    type       = "dockerfile"
-    dockerfile = "Dockerfile.txt"
-  }
-
+  # Old arguments that are still correct
   output_image  = local.image_repo
   output_secret = ibm_code_engine_secret.registry.name
 
@@ -162,7 +163,7 @@ resource "ibm_code_engine_app" "helper_app" {
   run_env_variables = [
     { type = "config_map", name = ibm_code_engine_config_map.cfg.name, key = "COS_BUCKET", value = "COS_BUCKET" },
     { type = "config_map", name = ibm_code_engine_config_map.cfg.name, key = "REGION",     value = "REGION"     },
-    { type = "secret",     name = ibM_code_engine_secret.cos_secret.name, key = "COS_ACCESS_KEY_ID",     value = "COS_ACCESS_KEY_ID" },
+    { type = "secret",     name = ibm_code_engine_secret.cos_secret.name, key = "COS_ACCESS_KEY_ID",     value = "COS_ACCESS_KEY_ID" },
     { type = "secret",     name = ibm_code_engine_secret.cos_secret.name, key = "COS_SECRET_ACCESS_KEY", value = "COS_SECRET_ACCESS_KEY" }
   ]
 
