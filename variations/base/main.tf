@@ -112,18 +112,13 @@ resource "ibm_code_engine_secret" "registry" {
   }
 }
 
-# --- THIS RESOURCE HAS BEEN UPDATED ---
 resource "ibm_code_engine_build" "helper_app" {
   project_id = ibm_code_engine_project.ce.id
   name       = "${var.helper_app_name}-build"
   
-  # Correct arguments for v1.84.x
   strategy_type     = "dockerfile"
   source_local_path = "${path.module}/../../helper-app"
   
-  # Note: The 'strategy_dockerfile' argument is only needed
-  # if your Dockerfile is not named 'Dockerfile'.
-  # We'll assume 'Dockerfile.txt' is correct.
   strategy_dockerfile = "Dockerfile.txt"
 
   output_image  = local.image_repo
@@ -132,8 +127,9 @@ resource "ibm_code_engine_build" "helper_app" {
   depends_on = [ibm_code_engine_project.ce, ibm_cr_namespace.ns]
 }
 
+# --- THIS RESOURCE HAS BEEN UPDATED ---
 resource "ibm_code_engine_config_map" "cfg" {
-  project_id = ibm_code_engine_project.ce..id
+  project_id = ibm_code_engine_project.ce.id
   name       = "${var.helper_app_name}-cfg"
   data = {
     COS_BUCKET = ibm_cos_bucket.cos_bucket.bucket_name
