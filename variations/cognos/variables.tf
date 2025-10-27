@@ -1,5 +1,5 @@
 variable "region" {
-  description = "IBM Cloud region (must match where you want COS & CE)"
+  description = "IBM Cloud region (must match where resources are deployed)"
   type        = string
   default     = "us-south"
 }
@@ -7,6 +7,8 @@ variable "region" {
 variable "resource_group_id" {
   description = "Resource Group ID for Code Engine project"
   type        = string
+  default     = ""
+  sensitive   = false
 }
 
 variable "bucket_prefix" {

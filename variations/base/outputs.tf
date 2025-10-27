@@ -10,5 +10,5 @@ output "bucket_website_url" {
 
 output "helper_app_url" {
   value       = ibm_code_engine_app.idl_helper.endpoint
-  description = "Public endpoint of the Remix/Manifest helper service"
+  description = "Remix/Manifest service endpoint"
 }

@@ -1,3 +1,5 @@
+for d in variations/*; do
+  cat > "$d/main.tf" <<'EOF'
 terraform {
   required_version = ">= 1.3.0"
 
@@ -7,7 +9,7 @@ terraform {
       version = ">= 1.84.0"
     }
     random = {
-      source  = "hashicorp/random"
+      source = "hashicorp/random"
       version = "~> 3.6"
     }
   }
@@ -17,7 +19,16 @@ provider "ibm" {
   region = var.region
 }
 
-# Unique suffix for names to avoid collisions across variations
+# Auto-detect resource group if not set by user
+data "ibm_resource_group" "current" {
+  count = var.resource_group_id == "" ? 1 : 0
+  name  = null
+}
+
+locals {
+  rg_id = var.resource_group_id != "" ? var.resource_group_id : data.ibm_resource_group.current[0].id
+}
+
 resource "random_string" "suffix" {
   length  = 6
   upper   = false
@@ -25,15 +36,13 @@ resource "random_string" "suffix" {
   special = false
 }
 
-# --------------------------------------------------
-# COS Instance + Bucket (Static Website)
-# --------------------------------------------------
-
+# COS Instance + Bucket + Website
 resource "ibm_resource_instance" "cos" {
-  name     = "${var.bucket_prefix}-cos-${random_string.suffix.result}"
-  service  = "cloud-object-storage"
-  plan     = "lite"
-  location = var.region
+  name              = "${var.bucket_prefix}-cos-${random_string.suffix.result}"
+  service           = "cloud-object-storage"
+  plan              = "lite"
+  location          = var.region
+  resource_group_id = local.rg_id
 }
 
 resource "ibm_cos_bucket" "bucket" {
@@ -50,28 +59,23 @@ resource "ibm_cos_bucket_website" "website" {
   error_page = "index.html"
 }
 
-# --------------------------------------------------
-# COS HMAC creds for CE to write index.html
-# --------------------------------------------------
-
+# COS HMAC Key (needed for CE writes)
 resource "ibm_resource_key" "cos_hmac" {
   name                 = "${var.bucket_prefix}-hmac-${random_string.suffix.result}"
   role                 = "Writer"
   resource_instance_id = ibm_resource_instance.cos.id
 
-  parameters_json = jsonencode({ HMAC = true })
+  parameters_json = jsonencode({
+    HMAC = true
+  })
 }
 
-# --------------------------------------------------
-# Code Engine: Project + Secret + App (uses your prebuilt image)
-# --------------------------------------------------
-
+# Code Engine Project + Secret + App
 resource "ibm_code_engine_project" "proj" {
   name              = "idl-proj-${random_string.suffix.result}"
-  resource_group_id = var.resource_group_id
+  resource_group_id = local.rg_id
 }
 
-# CE secret that exposes COS creds + config as envs to the container
 resource "ibm_code_engine_secret" "cos_secret" {
   project_id = ibm_code_engine_project.proj.id
   name       = "idl-cos-secret-${random_string.suffix.result}"
@@ -93,11 +97,9 @@ resource "ibm_code_engine_app" "idl_helper" {
   memory       = "1G"
   port         = 8080
 
-  # Autoscale for bursty "Manifest" calls
   scale_min_instances = 0
   scale_max_instances = 5
 
-  # Provide COS creds/config via secret envs
   run_env_variables = [
     {
       type = "secret"
@@ -118,10 +120,12 @@ resource "ibm_code_engine_app" "idl_helper" {
       ref  = ibm_code_engine_secret.cos_secret.name
     },
     {
-      type = "secret"
+      type  = "secret"
       name  = "COS_BUCKET"
       key   = "COS_BUCKET"
       ref   = ibm_code_engine_secret.cos_secret.name
     }
   ]
 }
+EOF
+done
