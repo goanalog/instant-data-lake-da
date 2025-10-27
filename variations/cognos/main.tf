@@ -1,16 +1,4 @@
-terraform {
-  required_version = ">= 1.5.0"
-  required_providers {
-    ibm = {
-      source  = "IBM-Cloud/ibm"
-      version = ">= 1.84.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.6"
-    }
-  }
-}
+# The terraform {} block has been moved to versions.tf
 
 provider "ibm" {
   region = var.region
@@ -112,7 +100,6 @@ resource "ibm_code_engine_secret" "registry" {
   }
 }
 
-# --- THIS RESOURCE HAS BEEN UPDATED ---
 resource "ibm_code_engine_build" "helper_app" {
   project_id = ibm_code_engine_project.ce.id
   name       = "${var.helper_app_name}-build"
