@@ -1,164 +1,127 @@
-# The terraform {} block has been moved to versions.tf
+terraform {
+  required_version = ">= 1.3.0"
+
+  required_providers {
+    ibm = {
+      source  = "IBM-Cloud/ibm"
+      version = ">= 1.84.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
+    }
+  }
+}
 
 provider "ibm" {
   region = var.region
 }
 
-data "ibm_resource_group" "rg" {
-  name = var.resource_group_name
-}
-
-resource "ibm_resource_instance" "cos" {
-  name              = "${var.prefix}-cos"
-  service           = "cloud-object-storage"
-  plan              = "lite"
-  location          = "global"
-  resource_group_id = data.ibm_resource_group.rg.id
-  tags              = ["idlake", "da", "base"]
-}
-
+# Unique suffix for names to avoid collisions across variations
 resource "random_string" "suffix" {
   length  = 6
   upper   = false
+  numeric = true
   special = false
 }
 
-resource "ibm_cos_bucket" "cos_bucket" {
-  bucket_name          = "${var.prefix}-${random_string.suffix.result}"
+# --------------------------------------------------
+# COS Instance + Bucket (Static Website)
+# --------------------------------------------------
+
+resource "ibm_resource_instance" "cos" {
+  name     = "${var.bucket_prefix}-cos-${random_string.suffix.result}"
+  service  = "cloud-object-storage"
+  plan     = "lite"
+  location = var.region
+}
+
+resource "ibm_cos_bucket" "bucket" {
+  bucket_name          = "${var.bucket_prefix}-${random_string.suffix.result}"
   resource_instance_id = ibm_resource_instance.cos.id
-  single_site_location = var.region
+  region_location      = var.region
   storage_class        = "standard"
   force_delete         = true
 }
 
-resource "ibm_resource_key" "cos_key" {
-  name                 = "${var.prefix}-cos-writer"
+resource "ibm_cos_bucket_website" "website" {
+  bucket     = ibm_cos_bucket.bucket.bucket_name
+  index_page = "index.html"
+  error_page = "index.html"
+}
+
+# --------------------------------------------------
+# COS HMAC creds for CE to write index.html
+# --------------------------------------------------
+
+resource "ibm_resource_key" "cos_hmac" {
+  name                 = "${var.bucket_prefix}-hmac-${random_string.suffix.result}"
   role                 = "Writer"
   resource_instance_id = ibm_resource_instance.cos.id
-  parameters           = { HMAC = true }
-  tags                 = ["idlake", "da", "creds"]
+
+  parameters_json = jsonencode({ HMAC = true })
 }
 
-locals {
-  sample_dir   = "${path.root}/../../sample-data"
-  sample_files = fileset(local.sample_dir, "*.csv")
+# --------------------------------------------------
+# Code Engine: Project + Secret + App (uses your prebuilt image)
+# --------------------------------------------------
+
+resource "ibm_code_engine_project" "proj" {
+  name              = "idl-proj-${random_string.suffix.result}"
+  resource_group_id = var.resource_group_id
 }
 
-resource "ibm_cos_bucket_object" "samples" {
-  for_each        = { for f in local.sample_files : f => f }
-  bucket_crn      = ibm_cos_bucket.cos_bucket.crn
-  bucket_location = var.region
-
-  key     = basename(each.value)
-  content = file("${local.sample_dir}/${each.value}")
-}
-
-resource "ibm_code_engine_project" "ce" {
-  name              = var.code_engine_project_name
-  resource_group_id = data.ibm_resource_group.rg.id
-}
-
-locals {
-  icr_host_by_region = {
-    "us-south" = "us.icr.io"
-    "us-east"  = "us.icr.io"
-    "eu-de"    = "de.icr.io"
-    "eu-gb"    = "uk.icr.io"
-    "jp-tok"   = "jp.icr.io"
-    "jp-osa"   = "jp.icr.io"
-    "ca-tor"   = "ca.icr.io"
-    "br-sao"   = "br.icr.io"
-  }
-  icr_region_code_by_region = {
-    "us-south" = "us"
-    "us-east"  = "us"
-    "eu-de"    = "de"
-    "eu-gb"    = "uk"
-    "jp-tok"   = "jp"
-    "jp-osa"   = "jp"
-    "ca-tor"   = "ca"
-    "br-sao"   = "br"
-  }
-
-  icr_host        = lookup(local.icr_host_by_region, var.region, "us.icr.io")
-  icr_region_code = lookup(local.icr_region_code_by_region, var.region, "us")
-  image_repo      = "${local.icr_host}/${var.icr_namespace}/${var.helper_app_name}:${var.image_tag}"
-}
-
-resource "ibm_cr_namespace" "ns" {
-  name = var.icr_namespace
-}
-
-resource "ibm_code_engine_secret" "registry" {
-  project_id = ibm_code_engine_project.ce.id
-  name       = "registry-secret"
-  format     = "registry"
-  data = {
-    username = "iamapikey"
-    password = var.ibmcloud_api_key
-    server   = local.icr_host
-  }
-}
-
-resource "ibm_code_engine_build" "helper_app" {
-  project_id = ibm_code_engine_project.ce.id
-  name       = "${var.helper_app_name}-build"
-  
-  strategy_type     = "dockerfile"
-  source_type       = "local"
-  source_local_path = "${path.module}/../../helper-app"
-  
-  strategy_dockerfile = "Dockerfile.txt"
-
-  output_image  = local.image_repo
-  output_secret = ibm_code_engine_secret.registry.name
-
-  depends_on = [ibm_code_engine_project.ce, ibm_cr_namespace.ns]
-}
-
-resource "ibm_code_engine_config_map" "cfg" {
-  project_id = ibm_code_engine_project.ce.id
-  name       = "${var.helper_app_name}-cfg"
-  data = {
-    COS_BUCKET = ibm_cos_bucket.cos_bucket.bucket_name
-    REGION     = var.region
-  }
-}
-
+# CE secret that exposes COS creds + config as envs to the container
 resource "ibm_code_engine_secret" "cos_secret" {
-  project_id = ibm_code_engine_project.ce.id
-  name       = "${var.helper_app_name}-cos"
-  format     = "generic"
+  project_id = ibm_code_engine_project.proj.id
+  name       = "idl-cos-secret-${random_string.suffix.result}"
+
   data = {
-    COS_ACCESS_KEY_ID     = try(ibm_resource_key.cos_key.credentials["cos_hmac_keys.access_key_id"], "")
-    COS_SECRET_ACCESS_KEY = try(ibm_resource_key.cos_key.credentials["cos_hmac_keys.secret_access_key"], "")
+    COS_ACCESS_KEY_ID     = ibm_resource_key.cos_hmac.credentials["cos_hmac_keys.access_key_id"]
+    COS_SECRET_ACCESS_KEY = ibm_resource_key.cos_hmac.credentials["cos_hmac_keys.secret_access_key"]
+    COS_ENDPOINT          = "https://s3.${var.region}.cloud-object-storage.appdomain.cloud"
+    COS_BUCKET            = ibm_cos_bucket.bucket.bucket_name
   }
 }
 
-resource "ibm_code_engine_app" "helper_app" {
-  project_id      = ibm_code_engine_project.ce.id
-  name            = var.helper_app_name
-  image_reference = ibm_code_engine_build.helper_app.output_image
+resource "ibm_code_engine_app" "idl_helper" {
+  project_id   = ibm_code_engine_project.proj.id
+  name         = "idl-helper-${random_string.suffix.result}"
+  image        = var.app_image
 
-  port      = 8080
-  cpu       = "0.25"
-  memory    = "0.5G"
-  min_scale = 0
-  max_scale = 2
+  cpu          = "1"
+  memory       = "1G"
+  port         = 8080
 
+  # Autoscale for bursty "Manifest" calls
+  scale_min_instances = 0
+  scale_max_instances = 5
+
+  # Provide COS creds/config via secret envs
   run_env_variables = [
-    { type = "config_map", name = ibm_code_engine_config_map.cfg.name, key = "COS_BUCKET", value = "COS_BUCKET" },
-    { type = "config_map", name = ibm_code_engine_config_map.cfg.name, key = "REGION",     value = "REGION"     },
-    { type = "secret",     name = ibm_code_engine_secret.cos_secret.name, key = "COS_ACCESS_KEY_ID",     value = "COS_ACCESS_KEY_ID" },
-    { type = "secret",     name = ibm_code_engine_secret.cos_secret.name, key = "COS_SECRET_ACCESS_KEY", value = "COS_SECRET_ACCESS_KEY" }
-  ]
-
-  managed_domain_mappings = "local_public"
-
-  depends_on = [
-    ibm_code_engine_secret.registry,
-    ibm_code_engine_build.helper_app,
-    ibm_cos_bucket.cos_bucket,
-    ibm_cos_bucket_object.samples
+    {
+      type = "secret"
+      name = "COS_ACCESS_KEY_ID"
+      key  = "COS_ACCESS_KEY_ID"
+      ref  = ibm_code_engine_secret.cos_secret.name
+    },
+    {
+      type = "secret"
+      name = "COS_SECRET_ACCESS_KEY"
+      key  = "COS_SECRET_ACCESS_KEY"
+      ref  = ibm_code_engine_secret.cos_secret.name
+    },
+    {
+      type = "secret"
+      name = "COS_ENDPOINT"
+      key  = "COS_ENDPOINT"
+      ref  = ibm_code_engine_secret.cos_secret.name
+    },
+    {
+      type = "secret"
+      name  = "COS_BUCKET"
+      key   = "COS_BUCKET"
+      ref   = ibm_code_engine_secret.cos_secret.name
+    }
   ]
 }

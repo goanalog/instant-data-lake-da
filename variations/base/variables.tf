@@ -1,48 +1,22 @@
 variable "region" {
+  description = "IBM Cloud region (must match where you want COS & CE)"
   type        = string
-  description = "Region for regional resources (e.g., us-south)."
   default     = "us-south"
 }
 
-variable "resource_group_name" {
+variable "resource_group_id" {
+  description = "Resource Group ID for Code Engine project"
   type        = string
-  description = "Resource Group to deploy into."
-  default     = "Default"
 }
 
-variable "prefix" {
+variable "bucket_prefix" {
+  description = "Prefix for globally-unique COS bucket names"
   type        = string
-  description = "Prefix for resource names. A random suffix will be added for uniqueness."
-  default     = "idlake"
+  default     = "idl-bucket"
 }
 
-variable "code_engine_project_name" {
+variable "app_image" {
+  description = "Container image for the IDL helper API"
   type        = string
-  description = "Code Engine project name."
-  default     = "idlake-ce"
-}
-
-variable "helper_app_name" {
-  type        = string
-  description = "Code Engine app name."
-  default     = "idlake-helper"
-}
-
-variable "icr_namespace" {
-  type        = string
-  description = "IBM Cloud Container Registry (ICR) namespace (will be created if missing)."
-  default     = "idlake"
-}
-
-variable "image_tag" {
-  type        = string
-  description = "Tag applied to the built helper image."
-  default     = "1.0.0"
-}
-
-variable "ibmcloud_api_key" {
-  type        = string
-  description = "IBM Cloud API key with permission to write to ICR and manage resources in the target Resource Group."
-  sensitive   = true
-  default     = null
+  default     = "us.icr.io/goanalog/idl-helper:latest"
 }
