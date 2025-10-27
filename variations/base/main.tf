@@ -33,6 +33,7 @@ resource "random_string" "suffix" {
   special = false
 }
 
+# COS Instance
 resource "ibm_resource_instance" "cos" {
   name              = "${var.bucket_prefix}-cos-${random_string.suffix.result}"
   service           = "cloud-object-storage"
@@ -41,34 +42,48 @@ resource "ibm_resource_instance" "cos" {
   resource_group_id = local.rg_id
 }
 
+# COS HMAC credentials
 resource "ibm_resource_key" "cos_hmac" {
   name                 = "${var.bucket_prefix}-hmac-${random_string.suffix.result}"
   role                 = "Writer"
   resource_instance_id = ibm_resource_instance.cos.id
-  parameters_json = jsonencode({ HMAC = true })
+
+  parameters = {
+    HMAC = true
+  }
 }
 
+# COS Bucket
 resource "ibm_cos_bucket" "bucket" {
   bucket_name          = "${var.bucket_prefix}-${random_string.suffix.result}"
   resource_instance_id = ibm_resource_instance.cos.id
   region_location      = var.region
   storage_class        = "standard"
   force_delete         = true
+}
+
+# Enable website hosting
+resource "ibm_cos_bucket_configuration" "website" {
+  bucket_crn = ibm_cos_bucket.bucket.crn
 
   website {
+    enable         = true
     index_document = "index.html"
     error_document = "index.html"
   }
 }
 
+# Code Engine Project
 resource "ibm_code_engine_project" "proj" {
   name              = "idl-proj-${random_string.suffix.result}"
   resource_group_id = local.rg_id
 }
 
+# Secret for COS access keys
 resource "ibm_code_engine_secret" "cos_secret" {
   project_id = ibm_code_engine_project.proj.id
   name       = "idl-cos-secret-${random_string.suffix.result}"
+
   data = {
     COS_ACCESS_KEY_ID     = ibm_resource_key.cos_hmac.credentials["cos_hmac_keys.access_key_id"]
     COS_SECRET_ACCESS_KEY = ibm_resource_key.cos_hmac.credentials["cos_hmac_keys.secret_access_key"]
@@ -77,42 +92,45 @@ resource "ibm_code_engine_secret" "cos_secret" {
   }
 }
 
+# Code Engine Application (Helper)
 resource "ibm_code_engine_app" "idl_helper" {
   name       = "idl-helper-${random_string.suffix.result}"
   project_id = ibm_code_engine_project.proj.id
 
-  # Provider >= 1.84.0 supports image_reference as a string attribute
   image_reference = var.app_image
-
-  # Env as blocks with 'secret' attribute
-  run_env_variables {
-    type = "secret"
-    name = "COS_ACCESS_KEY_ID"
-    key  = "COS_ACCESS_KEY_ID"
-    secret = ibm_code_engine_secret.cos_secret.name
-  }
-
-  run_env_variables {
-    type = "secret"
-    name = "COS_SECRET_ACCESS_KEY"
-    key  = "COS_SECRET_ACCESS_KEY"
-    secret = ibm_code_engine_secret.cos_secret.name
-  }
-
-  run_env_variables {
-    type  = "secret"
-    name  = "COS_ENDPOINT"
-    key   = "COS_ENDPOINT"
-    secret = ibm_code_engine_secret.cos_secret.name
-  }
-
-  run_env_variables {
-    type  = "secret"
-    name  = "COS_BUCKET"
-    key   = "COS_BUCKET"
-    secret = ibm_code_engine_secret.cos_secret.name
-  }
 
   scale_min_instances = 0
   scale_max_instances = 5
+
+  env_variable {
+    name = "COS_ACCESS_KEY_ID"
+    value_from_secret {
+      secret_name = ibm_code_engine_secret.cos_secret.name
+      secret_key  = "COS_ACCESS_KEY_ID"
+    }
+  }
+
+  env_variable {
+    name = "COS_SECRET_ACCESS_KEY"
+    value_from_secret {
+      secret_name = ibm_code_engine_secret.cos_secret.name
+      secret_key  = "COS_SECRET_ACCESS_KEY"
+    }
+  }
+
+  env_variable {
+    name = "COS_ENDPOINT"
+    value_from_secret {
+      secret_name = ibm_code_engine_secret.cos_secret.name
+      secret_key  = "COS_ENDPOINT"
+    }
+  }
+
+  env_variable {
+    name = "COS_BUCKET"
+    value_from_secret {
+      secret_name = ibm_code_engine_secret.cos_secret.name
+      secret_key  = "COS_BUCKET"
+    }
+  }
 }
