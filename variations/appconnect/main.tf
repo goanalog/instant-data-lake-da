@@ -1,9 +1,9 @@
 terraform {
-  required_version = ">= 1.1.2"
+  required_version = ">= 1.5.0"
   required_providers {
     ibm = {
       source  = "IBM-Cloud/ibm"
-      version = "1.60.0" # Pin to a compatible version
+      version = ">= 1.84.0" # Use the modern provider
     }
     random = {
       source  = "hashicorp/random"
@@ -37,7 +37,7 @@ resource "random_string" "suffix" {
 
 resource "ibm_cos_bucket" "cos_bucket" {
   bucket_name          = "${var.prefix}-${random_string.suffix.result}"
-  resource_crn         = ibm_resource_instance.cos.id
+  resource_instance_id = ibm_resource_instance.cos.id
   single_site_location = var.region
   storage_class        = "standard"
   force_delete         = true
@@ -61,16 +61,13 @@ resource "ibm_cos_bucket_object" "samples" {
   bucket_crn      = ibm_cos_bucket.cos_bucket.crn
   bucket_location = var.region
 
-  key          = basename(each.value)
-  content      = file("${local.sample_dir}/${each.value}")
-  content_type = "text/csv"
+  key     = basename(each.value)
+  content = file("${local.sample_dir}/${each.value}")
 }
 
 resource "ibm_code_engine_project" "ce" {
   name              = var.code_engine_project_name
-  region            = var.region
   resource_group_id = data.ibm_resource_group.rg.id
-  tags              = ["idlake", "da", "base"]
 }
 
 locals {
@@ -101,13 +98,13 @@ locals {
 }
 
 resource "ibm_cr_namespace" "ns" {
-  name   = var.icr_namespace
-  region = local.icr_region_code
+  name = var.icr_namespace
 }
 
 resource "ibm_code_engine_secret" "registry" {
   project_id = ibm_code_engine_project.ce.id
   name       = "registry-secret"
+  format     = "registry"
   data = {
     username = "iamapikey"
     password = var.ibmcloud_api_key
@@ -115,16 +112,19 @@ resource "ibm_code_engine_secret" "registry" {
   }
 }
 
+# --- THIS RESOURCE HAS BEEN UPDATED ---
 resource "ibm_code_engine_build" "helper_app" {
-  project_id  = ibm_code_engine_project.ce.id
-  name        = "${var.helper_app_name}-build"
-  source      = "local"
-  context_dir = "${path.module}/../../helper-app"
-
-  strategy {
-    type       = "dockerfile"
-    dockerfile = "Dockerfile.txt"
-  }
+  project_id = ibm_code_engine_project.ce.id
+  name       = "${var.helper_app_name}-build"
+  
+  # Correct arguments for v1.84.x
+  strategy_type     = "dockerfile"
+  source_local_path = "${path.module}/../../helper-app"
+  
+  # Note: The 'strategy_dockerfile' argument is only needed
+  # if your Dockerfile is not named 'Dockerfile'.
+  # We'll assume 'Dockerfile.txt' is correct.
+  strategy_dockerfile = "Dockerfile.txt"
 
   output_image  = local.image_repo
   output_secret = ibm_code_engine_secret.registry.name
@@ -133,7 +133,7 @@ resource "ibm_code_engine_build" "helper_app" {
 }
 
 resource "ibm_code_engine_config_map" "cfg" {
-  project_id = ibm_code_engine_project.ce.id
+  project_id = ibm_code_engine_project.ce..id
   name       = "${var.helper_app_name}-cfg"
   data = {
     COS_BUCKET = ibm_cos_bucket.cos_bucket.bucket_name
@@ -144,6 +144,7 @@ resource "ibm_code_engine_config_map" "cfg" {
 resource "ibm_code_engine_secret" "cos_secret" {
   project_id = ibm_code_engine_project.ce.id
   name       = "${var.helper_app_name}-cos"
+  format     = "generic"
   data = {
     COS_ACCESS_KEY_ID     = try(ibm_resource_key.cos_key.credentials["cos_hmac_keys.access_key_id"], "")
     COS_SECRET_ACCESS_KEY = try(ibm_resource_key.cos_key.credentials["cos_hmac_keys.secret_access_key"], "")
