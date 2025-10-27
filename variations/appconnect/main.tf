@@ -104,7 +104,7 @@ resource "ibm_cr_namespace" "ns" {
 resource "ibm_code_engine_secret" "registry" {
   project_id = ibm_code_engine_project.ce.id
   name       = "registry-secret"
-  format     = "docker_registry"
+  format     = "registry"
   data = {
     username = "iamapikey"
     password = var.ibmcloud_api_key
@@ -143,8 +143,8 @@ resource "ibm_code_engine_secret" "cos_secret" {
   name       = "${var.helper_app_name}-cos"
   format     = "generic"
   data = {
-    COS_ACCESS_KEY_ID     = ibm_resource_key.cos_key.cos_hmac_keys_access_key_id
-    COS_SECRET_ACCESS_KEY = ibm_resource_key.cos_key.cos_hmac_keys_secret_access_key
+    COS_ACCESS_KEY_ID     = try(ibm_resource_key.cos_key.credentials["cos_hmac_keys"]["access_key_id"], "")
+    COS_SECRET_ACCESS_KEY = try(ibm_resource_key.cos_key.credentials["cos_hmac_keys"]["secret_access_key"], "")
   }
 }
 
@@ -162,7 +162,7 @@ resource "ibm_code_engine_app" "helper_app" {
   run_env_variables = [
     { type = "config_map", name = ibm_code_engine_config_map.cfg.name, key = "COS_BUCKET", value = "COS_BUCKET" },
     { type = "config_map", name = ibm_code_engine_config_map.cfg.name, key = "REGION",     value = "REGION"     },
-    { type = "secret",     name = ibm_code_engine_secret.cos_secret.name, key = "COS_ACCESS_KEY_ID",     value = "COS_ACCESS_KEY_ID" },
+    { type = "secret",     name = ibM_code_engine_secret.cos_secret.name, key = "COS_ACCESS_KEY_ID",     value = "COS_ACCESS_KEY_ID" },
     { type = "secret",     name = ibm_code_engine_secret.cos_secret.name, key = "COS_SECRET_ACCESS_KEY", value = "COS_SECRET_ACCESS_KEY" }
   ]
 
