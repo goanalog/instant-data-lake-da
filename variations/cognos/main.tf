@@ -50,10 +50,9 @@ resource "ibm_cos_bucket" "bucket" {
   website {
     index_document = "index.html"
     error_document = "index.html"
+  }  website {
   }
-    index_document = "index.html"
-    error_document = "index.html"
-  }}
+  }
 
 
 resource "ibm_resource_key" "cos_hmac" {
