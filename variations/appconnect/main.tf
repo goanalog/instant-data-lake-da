@@ -1,5 +1,3 @@
-for d in variations/*; do
-  cat > "$d/main.tf" <<'EOF'
 terraform {
   required_version = ">= 1.3.0"
 
@@ -19,7 +17,6 @@ provider "ibm" {
   region = var.region
 }
 
-# Auto-detect resource group if not set by user
 data "ibm_resource_group" "current" {
   count = var.resource_group_id == "" ? 1 : 0
   name  = null
@@ -36,7 +33,6 @@ resource "random_string" "suffix" {
   special = false
 }
 
-# COS Instance + Bucket + Website
 resource "ibm_resource_instance" "cos" {
   name              = "${var.bucket_prefix}-cos-${random_string.suffix.result}"
   service           = "cloud-object-storage"
@@ -59,18 +55,13 @@ resource "ibm_cos_bucket_website" "website" {
   error_page = "index.html"
 }
 
-# COS HMAC Key (needed for CE writes)
 resource "ibm_resource_key" "cos_hmac" {
   name                 = "${var.bucket_prefix}-hmac-${random_string.suffix.result}"
   role                 = "Writer"
   resource_instance_id = ibm_resource_instance.cos.id
-
-  parameters_json = jsonencode({
-    HMAC = true
-  })
+  parameters_json      = jsonencode({ HMAC = true })
 }
 
-# Code Engine Project + Secret + App
 resource "ibm_code_engine_project" "proj" {
   name              = "idl-proj-${random_string.suffix.result}"
   resource_group_id = local.rg_id
@@ -79,7 +70,6 @@ resource "ibm_code_engine_project" "proj" {
 resource "ibm_code_engine_secret" "cos_secret" {
   project_id = ibm_code_engine_project.proj.id
   name       = "idl-cos-secret-${random_string.suffix.result}"
-
   data = {
     COS_ACCESS_KEY_ID     = ibm_resource_key.cos_hmac.credentials["cos_hmac_keys.access_key_id"]
     COS_SECRET_ACCESS_KEY = ibm_resource_key.cos_hmac.credentials["cos_hmac_keys.secret_access_key"]
@@ -89,13 +79,12 @@ resource "ibm_code_engine_secret" "cos_secret" {
 }
 
 resource "ibm_code_engine_app" "idl_helper" {
-  project_id   = ibm_code_engine_project.proj.id
-  name         = "idl-helper-${random_string.suffix.result}"
-  image        = var.app_image
-
-  cpu          = "1"
-  memory       = "1G"
-  port         = 8080
+  project_id = ibm_code_engine_project.proj.id
+  name       = "idl-helper-${random_string.suffix.result}"
+  image      = var.app_image
+  cpu        = "1"
+  memory     = "1G"
+  port       = 8080
 
   scale_min_instances = 0
   scale_max_instances = 5
@@ -120,12 +109,10 @@ resource "ibm_code_engine_app" "idl_helper" {
       ref  = ibm_code_engine_secret.cos_secret.name
     },
     {
-      type  = "secret"
-      name  = "COS_BUCKET"
-      key   = "COS_BUCKET"
-      ref   = ibm_code_engine_secret.cos_secret.name
+      type = "secret"
+      name = "COS_BUCKET"
+      key  = "COS_BUCKET"
+      ref  = ibm_code_engine_secret.cos_secret.name
     }
   ]
 }
-EOF
-done
