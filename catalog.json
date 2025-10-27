@@ -1,0 +1,39 @@
+{
+  "name": "instant-data-lake-da",
+  "version": "1.0.0",
+  "label": "Instant Data Lake \u2014 Static Site + Helper",
+  "description": "Deploys IBM Cloud Object Storage (static website) and a Code Engine helper service. Flavors share the same base today; analytics/integration add-ons arrive in later versions.",
+  "type": "terraform",
+  "product_kind": "solution",
+  "provider": "IBM",
+  "install_type": "fullstack",
+  "working_directory": "variations/base",
+  "flavors": [
+    {
+      "label": "Base \u2014 Static Site + Helper",
+      "name": "base",
+      "working_directory": "variations/base",
+      "install_type": "fullstack"
+    },
+    {
+      "label": "Analytics \u2014 Reserved (uses Base for now)",
+      "name": "cognos",
+      "working_directory": "variations/cognos",
+      "install_type": "fullstack"
+    },
+    {
+      "label": "Integration \u2014 Reserved (uses Base for now)",
+      "name": "appconnect",
+      "working_directory": "variations/appconnect",
+      "install_type": "fullstack"
+    }
+  ],
+  "tags": [
+    "ibm-cloud",
+    "cos",
+    "code-engine",
+    "static-site",
+    "serverless",
+    "deployable-architecture"
+  ]
+}

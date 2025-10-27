@@ -1,2 +1,0 @@
-docker build -t us.icr.io/idl-helper/idl-helper:latest .
-docker push us.icr.io/idl-helper/idl-helper:latest

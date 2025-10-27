@@ -7,7 +7,7 @@ terraform {
       version = ">= 1.84.0"
     }
     random = {
-      source = "hashicorp/random"
+      source  = "hashicorp/random"
       version = "~> 3.6"
     }
   }
@@ -45,10 +45,7 @@ resource "ibm_resource_key" "cos_hmac" {
   name                 = "${var.bucket_prefix}-hmac-${random_string.suffix.result}"
   role                 = "Writer"
   resource_instance_id = ibm_resource_instance.cos.id
-
-  parameters_json = jsonencode({
-    HMAC = true
-  })
+  parameters_json = jsonencode({ HMAC = true })
 }
 
 resource "ibm_cos_bucket" "bucket" {
@@ -84,39 +81,38 @@ resource "ibm_code_engine_app" "idl_helper" {
   name       = "idl-helper-${random_string.suffix.result}"
   project_id = ibm_code_engine_project.proj.id
 
-  image_reference {
-    image          = var.app_image
-    resolved_image = var.app_image
-  }
+  # Provider >= 1.84.0 supports image_reference as a string attribute
+  image_reference = var.app_image
 
-  scaling_min = 0
-  scaling_max = 5
-
+  # Env as blocks with 'secret' attribute
   run_env_variables {
     type = "secret"
     name = "COS_ACCESS_KEY_ID"
     key  = "COS_ACCESS_KEY_ID"
-    ref  = ibm_code_engine_secret.cos_secret.name
+    secret = ibm_code_engine_secret.cos_secret.name
   }
 
   run_env_variables {
     type = "secret"
     name = "COS_SECRET_ACCESS_KEY"
     key  = "COS_SECRET_ACCESS_KEY"
-    ref  = ibm_code_engine_secret.cos_secret.name
+    secret = ibm_code_engine_secret.cos_secret.name
   }
 
   run_env_variables {
     type  = "secret"
     name  = "COS_ENDPOINT"
     key   = "COS_ENDPOINT"
-    ref   = ibm_code_engine_secret.cos_secret.name
+    secret = ibm_code_engine_secret.cos_secret.name
   }
 
   run_env_variables {
     type  = "secret"
     name  = "COS_BUCKET"
     key   = "COS_BUCKET"
-    ref   = ibm_code_engine_secret.cos_secret.name
+    secret = ibm_code_engine_secret.cos_secret.name
   }
+
+  scale_min_instances = 0
+  scale_max_instances = 5
 }
