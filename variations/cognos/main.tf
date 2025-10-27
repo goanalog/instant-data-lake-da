@@ -19,7 +19,7 @@ provider "ibm" {
 
 data "ibm_resource_group" "current" {
   count = var.resource_group_id == "" ? 1 : 0
-  name  = null
+  is_default = true
 }
 
 locals {
@@ -47,13 +47,14 @@ resource "ibm_cos_bucket" "bucket" {
   region_location      = var.region
   storage_class        = "standard"
   force_delete         = true
-}
+  website {
+    index_document = "index.html"
+    error_document = "index.html"
+  }  website {
+    index_document = "index.html"
+    error_document = "index.html"
+  }}
 
-resource "ibm_cos_bucket_website" "website" {
-  bucket     = ibm_cos_bucket.bucket.bucket_name
-  index_page = "index.html"
-  error_page = "index.html"
-}
 
 resource "ibm_resource_key" "cos_hmac" {
   name                 = "${var.bucket_prefix}-hmac-${random_string.suffix.result}"
